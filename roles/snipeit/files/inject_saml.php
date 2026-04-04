@@ -20,7 +20,11 @@ try {
     // Načti první (a jediný) řádek nastavení z tabulky settings
     $s = App\Models\Setting::first();
     if (!$s) {
-        throw new Exception("Settings not found");
+        // Pokud nastavení neexistuje (čerstvá instalace), vytvoř výchozí řádek
+        $s = new App\Models\Setting();
+        $s->brand = 1;
+        $s->site_name = 'OSS Cybersecurity Lab';
+        echo "Settings not found, creating default setting row...\n";
     }
 
     // Načti SAML konfiguraci ze souboru vygenerovaného Ansiblem
@@ -42,3 +46,4 @@ try {
     echo "Error: " . $e->getMessage() . "\n";
     exit(1);
 }
+
