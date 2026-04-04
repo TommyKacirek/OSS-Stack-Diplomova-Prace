@@ -1,0 +1,67 @@
+{
+    # Global options
+    email internal
+    # Debug logovani pro troubleshooting
+    debug
+}
+
+# 1. Landing Page (oss.local)
+https://{{ domain_root }} {
+    tls internal
+    root * /srv/landing
+    file_server
+}
+
+# 2. Keycloak Identity Provider (auth.oss.local)
+https://{{ domain_auth }} {
+    tls internal
+    
+    reverse_proxy keycloak:8080 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
+    }
+}
+
+# 3. Snipe-IT Asset Management (assets.oss.local)
+https://{{ domain_assets }} {
+    tls internal
+
+    reverse_proxy snipeit:80 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+
+# 4. CISO Assistant (ciso.oss.local)
+https://{{ domain_ciso }} {
+    tls internal
+
+    # Rewrite _allauth requests to prefix /api, required by backend
+    rewrite /_allauth/* /api{uri}
+
+    # Proxy _allauth traffic (SSR) with injected Referer to satisfy Django CSRF
+    reverse_proxy /api/_allauth/* cisobackend:8000 {
+        header_up Referer https://{{ domain_ciso }}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # API requests go to backend
+    reverse_proxy /api/* cisobackend:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # UI requests go to frontend
+    reverse_proxy * cisofrontend:3000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+}
+

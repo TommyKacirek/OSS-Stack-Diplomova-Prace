@@ -1,0 +1,12 @@
+---
+- name: Create landing page directory
+  file:
+    path: "{{ project_root }}/landing"
+    state: directory
+    mode: '0755'
+
+- name: Deploy Landing Page HTML
+  template:
+    src: index.html.j2
+    dest: "{{ project_root }}/landing/index.html"
+    mode: '0644'

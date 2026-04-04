@@ -1,0 +1,133 @@
+{
+  "realm": "Lab",
+  "enabled": true,
+  "sslRequired": "none",
+  "users": [
+    {
+      "username": "{{ keycloak_lab_user_name }}",
+      "enabled": true,
+      "email": "{{ keycloak_lab_user_email }}",
+      "firstName": "{{ keycloak_lab_user_first_name }}",
+      "lastName": "{{ keycloak_lab_user_last_name }}",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [ "default-roles-lab" ]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@oss.local",
+      "firstName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "{{ keycloak_admin_password }}",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [ "default-roles-lab" ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "snipeit-oidc",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "{{ oidc_client_secret }}",
+      "redirectUris": [
+        "https://{{ domain_assets }}/*"
+      ],
+      "webOrigins": [
+        "https://{{ domain_assets }}"
+      ],
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true
+    },
+    {
+      "clientId": "https://{{ domain_assets }}",
+      "name": "Snipe-IT",
+      "enabled": true,
+      "protocol": "saml",
+      "attributes": {
+        "saml.authnstatement": "true",
+        "saml.server.signature": "true",
+        "saml.assertion.signature": "true",
+        "saml.client.signature": "false",
+        "saml.encrypt": "false",
+        "saml_force_name_id_format": "false",
+        "saml.server.signature.keyinfo.ext": "false",
+        "saml.force.post.binding": "true",
+        "saml_name_id_format": "username"
+      },
+      "redirectUris": [
+        "https://{{ domain_assets }}/saml/acs",
+        "https://{{ domain_assets }}/saml/uls"
+      ],
+      "protocolMappers": [
+        {
+          "name": "username",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "username",
+            "attribute.name": "username"
+          }
+        },
+        {
+          "name": "email",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "email",
+            "attribute.name": "email"
+          }
+        },
+        {
+          "name": "firstName",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "firstName",
+            "attribute.name": "firstName"
+          }
+        },
+        {
+          "name": "lastName",
+          "protocol": "saml",
+          "protocolMapper": "saml-user-property-mapper",
+          "consentRequired": false,
+          "config": {
+            "attribute.nameformat": "Basic",
+            "user.attribute": "lastName",
+            "attribute.name": "lastName"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "ciso-assistant-oidc",
+      "enabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "{{ oidc_client_secret }}",
+      "redirectUris": [
+        "https://{{ domain_ciso }}/*"
+      ],
+      "webOrigins": [
+        "https://{{ domain_ciso }}"
+      ],
+      "protocol": "openid-connect",
+      "fullScopeAllowed": true
+    }
+  ]
+}

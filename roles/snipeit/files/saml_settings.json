@@ -1,0 +1,24 @@
+{
+    "strict": false,
+    "debug": true,
+    "sp": {
+        "entityId": "https://assets.oss.local",
+        "assertionConsumerService": {
+            "url": "https://assets.oss.local/saml/acs",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+        },
+        "NameIDFormat": "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+    },
+    "idp": {
+        "entityId": "https://auth.oss.local/realms/Lab",
+        "singleSignOnService": {
+            "url": "https://auth.oss.local/realms/Lab/protocol/saml",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "singleLogoutService": {
+            "url": "https://auth.oss.local/realms/Lab/protocol/saml",
+            "binding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+        },
+        "x509cert": "MIIClTCCAX0CBgGbJ5FoeTANBgkqhkiG9w0BAQsFADAOMQwwCgYDVQQDDANMYWIwHhcNMjUxMjE2MTQyODE5WhcNMzUxMjE2MTQyOTU5WjAOMQwwCgYDVQQDDANMYWIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCOBlB3FMe+b1RwyvpO+xO9BXkQFkbetF6ucKgU117WNGBYRS1uteQDYJQ2h/eihbq5RW3wG5IbnBsk+pvnkcizcovaETW6D2H/DTRciiv8VyhLRKYQAJ/rBRsAQWaGD1/ukfmOHS46JmoU28cpn8jsGMiCvipsS0uxM8/CQSEGBjXl/0/6jYCpYOqW++B8cZ9Nygay+3azTdmMQNUNWg8/bp3Ppk6iTTs9KMcFenZfjMg2syxrDPal3EEWhKPzcP3SlHXwDylIohSP5QG3OhUVHAamPtjG/Dw/XrYOfkT76cwLaqbp9l38l/m8kf2nl3H0klj0g95refKuUKWyFy3XAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAEqmVUyp29Ze1F26hStSAfLZ7ToRBbofH/+hFsEESdhGcz7uPzXvPK85YHFBYOcwtdfgS137ZF0HhPi8DUqWvoaxTosjnNlDMkx4NQlbMtV7mZe2ZxDHt/erxYbwCt526ihPFpAYmqFa1wqXMB2MaRjDp5PjT+T0xljvSEApx9xbaZJqcEVzv4QQodlOceGXLLWbuRoNd1SrkK8TBFRSQLU1mh1x9FuIghY4SEDSw1EApztilks+iXkYIDJ/BM5l4cpREZKH8sPKWe5j8BF+kMX7pAIELH3snPrXbUBK2JPSLkd1T++3NnIACbvrGU7Ssvf90jIJeSjz+byeRd8OKSM="
+    }
+}

@@ -1,0 +1,154 @@
+---
+# Ansible role: snipeit
+# Nasadí Snipe-IT (správa IT aktiv / CMDB) a nakonfiguruje SAML SSO přes Keycloak.
+# Po startu aplikace automaticky:
+#   1. Aplikuje PHP middleware patche pro správnou funkci SAML za Caddy proxy
+#   2. Vytvoří admin účet (bypass setup wizard)
+#   3. Načte X.509 certifikát z Keycloak metadata a injektuje SAML konfiguraci
+#   4. Naplní databázi ukázkovými aktivy (Energo-Služby s.r.o.)
+
+# Vytvoří pracovní adresář pro Snipe-IT a MySQL databázi
+- name: Create Snipe-IT directory
+  file:
+    path: "{{ project_root }}/snipeit"
+    state: directory
+    mode: '0755'
+
+# Ověří, zda již existuje soubor s APP_KEY (šifrovací klíč Laravel aplikace)
+- name: Check if APP_KEY file exists
+  stat:
+    path: "{{ project_root }}/snipeit/app.key"
+  register: app_key_file
+
+# Vygeneruje nový APP_KEY pouze při prvním nasazení (idempotentní)
+- name: Generate fresh APP_KEY
+  shell: "echo 'base64:'$(openssl rand -base64 32) > {{ project_root }}/snipeit/app.key"
+  when: not app_key_file.stat.exists
+
+# Načte APP_KEY ze souboru pro použití v docker-compose šabloně
+- name: Read APP_KEY
+  slurp:
+    src: "{{ project_root }}/snipeit/app.key"
+  register: app_key_content
+
+- name: Set APP_KEY variable
+  set_fact:
+    snipeit_app_key: "{{ app_key_content.content | b64decode | trim }}"
+
+# Vygeneruje docker-compose.yml pro Snipe-IT a jeho MySQL databázi
+- name: Deploy Snipe-IT Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ project_root }}/snipeit/docker-compose.yml"
+    mode: '0644'
+  notify: restart snipeit
+
+# Spustí Snipe-IT a MySQL kontejnery
+- name: Start Snipe-IT Service
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/snipeit"
+    state: present
+
+# Počká až bude Snipe-IT kontejner připraven (PHP artisan může trvat i 2 min)
+- name: Wait for Snipe-IT to be ready
+  command: docker exec snipeit ls
+  register: result
+  until: result.rc == 0
+  retries: 30
+  delay: 5
+
+# Zkopíruje do kontejneru Python skript, který opraví PHP middleware;
+# patch je nutný pro správné zpracování X-Forwarded-* hlaviček přes Caddy
+- name: Apply SAML PHP middleware hotfixes
+  command: docker cp {{ role_path }}/files/fix_snipeit_saml.py snipeit:/tmp/fix_snipeit_saml.py
+
+- name: Run SAML PHP middleware hotfixes
+  command: docker exec snipeit python3 /tmp/fix_snipeit_saml.py
+  register: hotfix_result
+  changed_when: "'APPLIED' in hotfix_result.stdout"
+
+# Vytvoří admin účet přes artisan příkaz; přeskočí setup wizard Snipe-IT
+- name: Create Admin User (Bypass Setup Wizard)
+  command: >
+    docker exec snipeit php artisan snipeit:create-admin
+    --first_name=Admin --last_name=User
+    --email=admin@oss.local --username=admin --password=admin_password
+    --no-interaction
+  register: admin_create
+  changed_when: "'Created admin user' in admin_create.stdout"
+  failed_when:
+    - admin_create.rc != 0
+    - "'already exists' not in admin_create.stdout"
+  ignore_errors: yes
+
+# Počká až bude dostupný SAML metadata endpoint Keycloaku
+# (Keycloak musí být spuštěn a realm importován)
+- name: Wait for Keycloak Metadata to be available
+  uri:
+    url: "https://{{ domain_auth }}/realms/Lab/protocol/saml/descriptor"
+    validate_certs: no
+    return_content: yes
+  register: keycloak_metadata
+  until: keycloak_metadata.status == 200
+  retries: 20
+  delay: 5
+
+# Extrahuje X.509 certifikát z XML metadata Keycloaku pomocí regulárního výrazu;
+# certifikát je potřeba pro ověření SAML odpovědí (podpis IdP)
+- name: Extract X.509 Certificate from Metadata
+  set_fact:
+    keycloak_cert: "{{ keycloak_metadata.content | regex_search('<ds:X509Certificate>(.*?)</ds:X509Certificate>', '\\1') | first }}"
+
+# Vygeneruje flat SAML konfiguraci (key=value formát) s dynamickým certifikátem;
+# flat formát je vyžadován verzí onelogin/php-saml v3.x používanou Snipe-IT
+- name: Generate SAML Flat Config (with dynamic cert)
+  template:
+    src: saml_settings_flat.txt.j2
+    dest: "/opt/lab/snipeit/saml_settings_flat.txt"
+    mode: '0644'
+
+# Zkopíruje SAML konfiguraci do kontejneru pro injekci do databáze
+- name: Copy SAML Config to Snipe-IT Container
+  command: docker cp /opt/lab/snipeit/saml_settings_flat.txt snipeit:/tmp/saml_settings_flat.txt
+
+- name: Copy Injection Script
+  copy:
+    src: inject_saml.php
+    dest: "{{ project_root }}/snipeit/inject_saml.php"
+    mode: '0644'
+
+- name: Push Injection Script to Container
+  command: docker cp {{ project_root }}/snipeit/inject_saml.php snipeit:/var/www/html/inject_saml.php
+
+# Spustí PHP skript, který zapíše SAML konfiguraci přímo do databáze Snipe-IT
+- name: Execute Injection Script
+  command: docker exec snipeit php inject_saml.php
+  register: inject_result
+  changed_when: "'SAML Config Injected Successfully' in inject_result.stdout"
+
+# Vymaže Laravel konfigurační cache – nutné po každé změně SAML nastavení
+- name: Clear Config Cache (Critical for SAML changes)
+  command: docker exec snipeit php artisan config:clear
+  changed_when: true
+
+# Vygeneruje API token pro uživatele ID=1 (admin); token je potřeba pro seeding
+- name: Generate API Key for Seeding
+  command: docker exec snipeit php artisan snipeit:make-api-key --key-only --user_id=1 --no-interaction
+  register: snipeit_api_key_raw
+  changed_when: false
+
+- name: Set Snipe-IT API Token
+  set_fact:
+    snipeit_api_token: "{{ snipeit_api_key_raw.stdout | trim }}"
+
+# Nahraje ukázková aktiva organizace Energo-Služby s.r.o. přes REST API Snipe-IT
+- name: Copy Energo Seeding Script to Container
+  command: docker cp {{ role_path }}/files/snipeit_energo_upload.py snipeit:/tmp/snipeit_energo_upload.py
+
+- name: Run Energo Seeding Script
+  command: >
+    docker exec -e SNIPEIT_API_KEY={{ snipeit_api_token }}
+    -e SNIPEIT_API_URL=http://localhost:80/api/v1
+    snipeit python3 /tmp/snipeit_energo_upload.py
+  register: seeding_output
+  changed_when: "'vytvořeno' in seeding_output.stdout"

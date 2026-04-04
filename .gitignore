@@ -1,0 +1,46 @@
+# Debug a dočasné soubory
+*.log
+*.bak
+data/
+fresh_metadata.xml
+saml_metadata.xml
+keycloak_lab_realm_export.json
+caddy_root*.crt
+Caddyfile_new
+backend_*.log
+frontend_*.log
+
+# Python debug skripty
+extract_frontend*.py
+get_real_frontend.py
+COMPLETE_FRONTEND_ANALYSIS.md
+
+# Vaulted secrets (nikdy nekomiovat plaintext)
+inventory/group_vars/all/vault.yml
+
+# OS
+.DS_Store
+__pycache__/
+*.pyc
+
+# SAML/SSO ladění — jednorázové skripty v rootu
+Response.php
+SamlController.php
+check_sso.py
+ciso_core_urls.py
+ciso_settings.py
+ciso_urls.py
+core_views_backup.py
+create_ciso_user.py
+csrf_exempt.py
+enable_sso.py
+iam_adapter.py
+iam_sso_models.py
+iam_views_backup.py
+restore_sso.py
+settings_backup.py
+setup_oidc_rendered.py
+verify_db.py
+
+# Lokální archiv poznámek
+archive/

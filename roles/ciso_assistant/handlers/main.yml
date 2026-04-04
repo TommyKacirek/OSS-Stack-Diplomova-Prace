@@ -1,0 +1,4 @@
+- name: restart ciso_assistant
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/ciso_assistant"
+    state: restarted

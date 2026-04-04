@@ -1,0 +1,7 @@
+---
+- name: Deploy CISO Assistant Only
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - ciso_assistant

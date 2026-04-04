@@ -1,0 +1,8 @@
+---
+- name: restart caddy
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/caddy"
+    state: restarted
+
+- name: reload caddy
+  command: docker exec caddy caddy reload --config /etc/caddy/Caddyfile

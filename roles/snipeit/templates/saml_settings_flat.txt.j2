@@ -1,0 +1,13 @@
+strict=false
+debug=true
+sp.entityId=https://{{ domain_assets }}
+sp.assertionConsumerService.url=https://{{ domain_assets }}/saml/acs
+sp.assertionConsumerService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+sp.NameIDFormat=urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+idp.entityId=https://{{ domain_auth }}/realms/Lab
+idp.singleSignOnService.url=https://{{ domain_auth }}/realms/Lab/protocol/saml
+idp.singleSignOnService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+idp.singleLogoutService.url=https://{{ domain_auth }}/realms/Lab/protocol/saml
+idp.singleLogoutService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+idp.x509cert={{ keycloak_cert }}
+security.allowRepeatAttributeName=true

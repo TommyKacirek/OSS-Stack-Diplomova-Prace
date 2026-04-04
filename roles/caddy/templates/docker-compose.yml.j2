@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  caddy:
+    image: caddy:alpine
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - {{ project_root }}/landing:/srv/landing
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      {{ docker_network }}:
+        aliases:
+          - {{ domain_root }}
+          - {{ domain_auth }}
+          - {{ domain_assets }}
+          - {{ domain_ciso }}
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  {{ docker_network }}:
+    external: true

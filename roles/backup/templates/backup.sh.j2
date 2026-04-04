@@ -1,0 +1,11 @@
+#!/bin/bash
+export RESTIC_REPOSITORY=/home/kaca/cybersecurity-backups
+export RESTIC_PASSWORD='{{ restic_password }}'
+
+echo "Starting backup at $(date)" >> /var/log/restic-backup.json
+
+# Backup
+restic backup /home/kaca/cybersecurity-lab --json >> /var/log/restic-backup.json 2>&1
+
+# Forget & Prune
+restic forget --keep-daily 7 --prune --json >> /var/log/restic-backup.json 2>&1

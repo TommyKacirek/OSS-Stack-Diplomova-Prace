@@ -1,0 +1,47 @@
+---
+# Ansible role: common
+# Základní příprava systému: instalace závislostí, nastavení časové zóny,
+# vytvoření sdílené Docker sítě a projektového adresáře.
+
+# Nainstaluje nástroje potřebné pro provoz a správu stacku
+- name: Install basic packages
+  apt:
+    name:
+      - curl
+      - wget
+      - htop
+      - git
+      - python3-pip
+    state: present
+    update_cache: yes
+
+# Nastaví časovou zónu serveru; důležité pro správné časové razítko logů a záloh
+- name: Set timezone to Europe/Prague
+  timezone:
+    name: Europe/Prague
+
+# Vytvoří kořenový adresář projektu (/opt/lab); zde jsou uloženy
+# konfigurace a data všech Docker služeb
+- name: Create project root directory
+  file:
+    path: "{{ project_root }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user | default(ansible_env.USER) }}"
+    group: docker
+
+# Vytvoří sdílenou bridge síť pro komunikaci mezi kontejnery;
+# všechny služby jsou připojeny do této sítě a mohou se navzájem adresovat jménem
+- name: Create Docker network
+  docker_network:
+    name: "{{ docker_network }}"
+    driver: bridge
+
+# Pozn.: systemd-resolved (port 53) zde není zastavován;
+# Caddy nepracuje jako DNS server, /etc/hosts na klientu řeší překlad domén.
+# - name: Stop systemd-resolved to free port 53
+#   service:
+#     name: systemd-resolved
+#     state: stopped
+#     enabled: no
+#   ignore_errors: yes

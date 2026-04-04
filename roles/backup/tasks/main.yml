@@ -1,0 +1,74 @@
+---
+# Ansible role: backup
+# Konfiguruje automatické šifrované zálohy pomocí Restic.
+# Zálohy probíhají každý den ve 02:00, retence je 7 dnů.
+# Zálohovací repozitář je uložen lokálně na serveru.
+
+# Nainstaluje Restic ze systémového repozitáře
+- name: Install Restic
+  package:
+    name: restic
+    state: present
+
+# Vytvoří adresář pro zálohovací repozitář; vlastníkem je přihlášený uživatel
+- name: Create backup repository directory
+  file:
+    path: "/home/kaca/cybersecurity-backups"
+    state: directory
+    mode: '0755'
+    owner: "{{ ansible_user | default(ansible_env.USER) }}"
+    group: "{{ ansible_user | default(ansible_env.USER) }}"
+    recurse: yes
+
+# Inicializuje Restic repozitář (vytvoří šifrovanou strukturu);
+# pokud repozitář již existuje, task skončí bez chyby (idempotentní)
+- name: Initialize Restic repository
+  command:
+    cmd: restic init
+  environment:
+    RESTIC_REPOSITORY: "/home/kaca/cybersecurity-backups"
+    RESTIC_PASSWORD: "{{ restic_password }}"
+  register: restic_init
+  failed_when:
+    - restic_init.rc != 0
+    - "'already initialized' not in restic_init.stderr"
+    - "'config file already exists' not in restic_init.stderr"
+  changed_when: "'created restic repository' in restic_init.stdout"
+
+# Zajistí existenci log souboru pro záznamy zálohovacích operací
+- name: Ensure log file exists
+  file:
+    path: /var/log/restic-backup.json
+    state: touch
+    mode: '0644'
+    owner: root
+    group: root
+
+# Nasadí zálohovací shell skript z Jinja2 šablony;
+# skript provede zálohu a prořeže staré snapshoty
+- name: Create backup script
+  template:
+    src: backup.sh.j2
+    dest: /usr/local/bin/backup-cyberlab.sh
+    mode: '0755'
+
+# Naplánuje denní zálohu přes cron (spuštění ve 02:00)
+- name: Schedule backup via Cron (02:00 AM)
+  cron:
+    name: "CyberLab Daily Backup"
+    minute: "0"
+    hour: "2"
+    job: "/usr/local/bin/backup-cyberlab.sh"
+
+# Vytvoří pomocný skript run-backup.sh v kořenovém adresáři projektu
+# pro pohodlné ruční spuštění zálohy bez sudo
+- name: Create manual run helper script in project root
+  copy:
+    dest: "{{ playbook_dir }}/../run-backup.sh"
+    mode: '0755'
+    content: |
+      #!/bin/bash
+      echo "Starting manual backup..."
+      sudo /usr/local/bin/backup-cyberlab.sh
+      echo "Backup finished. Last 5 log entries:"
+      tail -n 5 /var/log/restic-backup.json

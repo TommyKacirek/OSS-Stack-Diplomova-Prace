@@ -1,0 +1,25 @@
+---
+# Zkopiruj tento soubor jako vault.yml a vyplň vlastni hesla:
+#   cp vault.yml.example vault.yml
+#
+# Doporuceni: pouzij nahodna silna hesla (napr. pwgen -s 32 1)
+# Pro produkci zasifrovani pomoci Ansible Vault:
+#   ansible-vault encrypt vault.yml
+
+# Keycloak
+keycloak_admin_password: ZmenMeNaSilneHeslo!
+keycloak_db_password: ZmenMeNaSilneHeslo!
+
+# CISO Assistant
+ciso_db_password: ZmenMeNaSilneHeslo!
+
+# Snipe-IT
+snipeit_mysql_password: ZmenMeNaSilneHeslo!
+snipeit_mysql_root_password: ZmenMeNaSilneHeslo!
+
+# OIDC klient secret (Keycloak -> Clients -> snipeit/ciso -> Credentials)
+# Tato hodnota se generuje automaticky pri deployi, nemas ji menit rucne.
+oidc_client_secret: 
+
+# Restic backup heslo (pro sifrovani zalohovych repozitaru)
+restic_password: ZmenMeNaSilneHeslo!

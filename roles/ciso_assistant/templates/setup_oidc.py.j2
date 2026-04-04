@@ -1,0 +1,60 @@
+import os
+import django
+from django.conf import settings
+
+# Setup Django environment
+import sys
+sys.path.append('/code')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ciso_assistant.settings")
+django.setup()
+
+from allauth.socialaccount.models import SocialApp
+from global_settings.models import GlobalSettings
+
+# Configuration
+PROVIDER_ID = "openid_connect"
+CLIENT_ID = "ciso-assistant-oidc"
+SECRET = "{{ oidc_client_secret }}"
+NAME = "Keycloak OIDC"
+# Use external HTTPS URL for OIDC to ensure issuer consistency
+# The backend container trusts Caddy's CA via REQUESTS_CA_BUNDLE
+KEYCLOAK_URL = "https://{{ domain_auth }}/realms/Lab"
+
+# Settings for OIDC - MUST include 'sp' key to avoid KeyError
+settings_config = {
+    "server_url": f"{KEYCLOAK_URL}/.well-known/openid-configuration",
+    "token_auth_method": "client_secret_post",
+    "sp": {"entity_id": "ciso-assistant-oidc-dummy"}
+}
+
+# 1. Update SocialApp (used by allauth headless views)
+app, created = SocialApp.objects.update_or_create(
+    provider=PROVIDER_ID,
+    provider_id=PROVIDER_ID,
+    defaults={
+        "name": NAME,
+        "client_id": CLIENT_ID,
+        "secret": SECRET,
+        "settings": settings_config,
+    }
+)
+print(f"SocialApp '{NAME}' configured successfully.")
+
+# 2. Update GlobalSettings (used by CISO Assistant UI and custom SSO logic)
+sso_value = {
+    "is_enabled": True,
+    "force_sso": False,
+    "provider": PROVIDER_ID,
+    "provider_id": PROVIDER_ID,
+    "name": NAME,
+    "client_id": CLIENT_ID,
+    "secret": SECRET,
+    "key": "",
+    "settings": settings_config
+}
+
+gs, gs_created = GlobalSettings.objects.update_or_create(
+    name='sso',
+    defaults={"value": sso_value}
+)
+print(f"GlobalSettings 'sso' configured successfully.")

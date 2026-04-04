@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: keycloak
+    restart: unless-stopped
+    environment:
+      KC_HOSTNAME: {{ domain_auth }}
+      KC_HTTP_ENABLED: "true"
+      KC_PROXY_HEADERS: "xforwarded" 
+      KEYCLOAK_ADMIN: {{ keycloak_admin_user }}
+      KEYCLOAK_ADMIN_PASSWORD: {{ keycloak_admin_password }}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres/{{ keycloak_db_name }}
+      KC_DB_USERNAME: {{ keycloak_db_user }}
+      KC_DB_PASSWORD: {{ keycloak_db_password }}
+      # Optimalizace pripojeni k DB
+      KC_DB_POOL_INITIAL: 10
+      KC_DB_POOL_MAX_SIZE: 20
+      JAVA_OPTS: "-Xms1024m -Xmx2048m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./realm-export.json:/opt/keycloak/data/import/realm.json
+    command: start-dev --import-realm
+    depends_on:
+      - postgres
+    networks:
+      - {{ docker_network }}
+
+  postgres:
+    image: postgres:15
+    container_name: keycloak_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: {{ keycloak_db_name }}
+      POSTGRES_USER: {{ keycloak_db_user }}
+      POSTGRES_PASSWORD: {{ keycloak_db_password }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - {{ docker_network }}
+
+volumes:
+  postgres_data:
+
+networks:
+  {{ docker_network }}:
+    external: true

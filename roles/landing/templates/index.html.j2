@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="cs" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>OSS Security Stack | Console</title>
+  <meta name="description" content="Moderní rozcestník do OSS security stacku – rychlý vstup do nástrojů, vyhledávání, tagy, oblíbené." />
+
+  <!-- Font (Inter) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind Play CDN (no-build) -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+  <!-- Lucide (icons) -->
+  <script src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    :root { color-scheme: dark; }
+    html, body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+
+    /* Subtle “premium” background: gradient mesh + noise */
+    .bg-mesh {
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(99,102,241,.28), transparent 60%),
+        radial-gradient(1000px 700px at 80% 20%, rgba(236,72,153,.20), transparent 60%),
+        radial-gradient(1200px 800px at 50% 90%, rgba(34,197,94,.16), transparent 60%),
+        linear-gradient(to bottom, rgba(0,0,0,.0), rgba(0,0,0,.35));
+    }
+    .noise:before{
+      content:"";
+      position:fixed; inset:0;
+      pointer-events:none;
+      opacity:.06;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+    }
+
+    /* Nice focus ring */
+    :focus-visible { outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,.35); border-radius: 12px; }
+
+    /* Smooth hover */
+    .card { transition: transform .18s ease, border-color .18s ease, background-color .18s ease; }
+    .card:hover { transform: translateY(-2px); }
+
+    /* Keep header readable on scroll */
+    .glass {
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Light theme support */
+    html:not(.dark) :root { color-scheme: light; }
+  </style>
+</head>
+
+<body class="noise min-h-screen bg-zinc-950 text-zinc-100 selection:bg-indigo-500/30">
+  <div class="fixed inset-0 -z-10 bg-mesh"></div>
+
+  <!-- Top bar -->
+  <header class="sticky top-0 z-40 border-b border-white/10 bg-zinc-950/60 glass">
+    <div class="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+      <div class="flex items-center gap-3">
+        <div class="grid h-10 w-10 place-items-center rounded-2xl border border-white/10 bg-white/5">
+          <i data-lucide="layout-grid" class="h-5 w-5"></i>
+        </div>
+        <div class="leading-tight">
+          <div class="text-sm font-semibold tracking-tight">OSS Stack Console</div>
+          <div class="text-xs text-zinc-400">Rychlý vstup do nástrojů • / pro hledání</div>
+        </div>
+      </div>
+
+      <div class="ml-auto flex w-full max-w-xl items-center gap-2">
+        <div class="relative w-full">
+          <div class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
+            <i data-lucide="search" class="h-4 w-4"></i>
+          </div>
+          <input id="q"
+                 class="w-full rounded-2xl border border-white/10 bg-white/5 px-10 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500"
+                 placeholder="Hledej nástroj (např. Keycloak, CISO, Moodle)…"
+                 autocomplete="off"
+          />
+          <div class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-zinc-500">
+            <kbd class="rounded-md border border-white/10 bg-white/5 px-1.5 py-0.5">/</kbd>
+          </div>
+        </div>
+
+        <button id="theme"
+                class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-zinc-100 hover:bg-white/10"
+                title="Přepnout téma">
+          <i data-lucide="moon-star" class="h-4 w-4"></i>
+          <span class="hidden sm:inline">Téma</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="mx-auto max-w-6xl px-4 pb-16 pt-10">
+    <!-- Hero -->
+    <section class="flex flex-col gap-6">
+      <div class="grid gap-4 md:grid-cols-12">
+        <div class="md:col-span-8">
+          <h1 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+            Admin rozcestník pro <span class="text-indigo-300">OSS security stack</span>
+          </h1>
+          <p class="mt-3 text-zinc-300">
+            Přehledné karty, tagy, vyhledávání, oblíbené a rychlé akce – aby se do nástrojů šlo jedním klikem.
+          </p>
+
+          <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-zinc-400">
+            <span class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+              <i data-lucide="server" class="h-3.5 w-3.5"></i> Host: {{ ansible_hostname }}
+            </span>
+            <span class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
+              <i data-lucide="network" class="h-3.5 w-3.5"></i> IP: {{ ansible_default_ipv4.address }}
+            </span>
+          </div>
+        </div>
+
+        <div class="md:col-span-4">
+          <div class="rounded-3xl border border-white/10 bg-white/5 p-5">
+            <div class="flex items-center justify-between">
+              <div class="text-sm font-medium">Rychlé akce</div>
+              <div class="text-xs text-zinc-500">Volitelné</div>
+            </div>
+            <div class="mt-4 grid gap-2">
+              <button id="openFavorites"
+                      class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-left text-sm hover:bg-white/10">
+                Otevřít oblíbené (nové karty)
+              </button>
+              <button id="copySummary"
+                      class="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-left text-sm hover:bg-white/10">
+                Zkopírovat seznam URL
+              </button>
+              <div class="mt-2 text-xs text-zinc-500">
+                Tip: Klik na hvezdičku přidá/odebere oblíbené. Enter na kartě otevře nástroj.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap items-center gap-2">
+        <div class="text-xs text-zinc-500 mr-2">Filtry:</div>
+        <div id="chips" class="flex flex-wrap gap-2"></div>
+        <button id="clearFilters"
+                class="ml-auto rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs text-zinc-200 hover:bg-white/10">
+          Vyčistit
+        </button>
+      </div>
+    </section>
+
+    <!-- Grid -->
+    <section class="mt-8">
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-zinc-400">
+          Zobrazeno: <span id="count" class="text-zinc-200">0</span>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 text-xs text-zinc-500">
+          <span class="rounded-md border border-white/10 bg-white/5 px-2 py-1">/</span> hledat
+          <span class="rounded-md border border-white/10 bg-white/5 px-2 py-1">Esc</span> vyčistit
+        </div>
+      </div>
+
+      <div id="grid"
+           class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      </div>
+
+      <div id="empty" class="hidden mt-10 rounded-3xl border border-white/10 bg-white/5 p-8 text-center">
+        <div class="mx-auto grid h-12 w-12 place-items-center rounded-2xl border border-white/10 bg-white/5">
+          <i data-lucide="ghost" class="h-5 w-5 text-zinc-300"></i>
+        </div>
+        <div class="mt-3 text-sm font-medium">Nic nenalezeno</div>
+        <div class="mt-1 text-sm text-zinc-400">Zkus změnit dotaz nebo vyčistit filtry.</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-white/10 bg-zinc-950/40 glass">
+    <div class="mx-auto max-w-6xl px-4 py-6 text-xs text-zinc-500">
+
+    </div>
+  </footer>
+
+  <script>
+    // ====== CONFIG: uprav si názvy/URL/tagy ======
+    const TOOLS = [
+      {
+        id: "keycloak",
+        name: "Keycloak",
+        desc: "Identity Provider (IdP), SSO, správa uživatelů.",
+        url: "https://{{ domain_auth }}/",
+        icon: "key-round",
+        group: "Identity",
+        tags: ["SSO","IAM","OIDC"],
+        status: "prod"
+      },
+      {
+        id: "snipeit",
+        name: "Snipe-IT",
+        desc: "Inventář aktiv a asset management.",
+        url: "https://{{ domain_assets }}/",
+        icon: "package",
+        group: "Assets",
+        tags: ["CMDB","Inventory"],
+        status: "prod"
+      },
+      {
+        id: "cisoassistant",
+        name: "CISO Assistant",
+        desc: "GRC, rizika, kontrolní rámce (NIS2).",
+        url: "https://{{ domain_ciso }}/",
+        icon: "clipboard-check",
+        group: "GRC",
+        tags: ["GRC","Risk","NIS2"],
+        status: "prod"
+      },
+      /*
+      {
+        id: "moodle",
+        name: "Moodle LMS",
+        desc: "Learning Management System, školení.",
+        url: "https://{{ domain_moodle }}/",
+        icon: "graduation-cap",
+        group: "Learning",
+        tags: ["LMS","Training"],
+        status: "prod"
+      }
+      */
+    ];
+
+    // ====== state ======
+    const $ = (sel) => document.querySelector(sel);
+    const grid = $("#grid");
+    const q = $("#q");
+    const chips = $("#chips");
+    const count = $("#count");
+    const empty = $("#empty");
+    const clearFilters = $("#clearFilters");
+
+    const LS_THEME = "oss-console-theme";
+    const LS_FAV = "oss-console-favorites";
+
+    let activeGroup = "All";
+    let favorites = new Set(JSON.parse(localStorage.getItem(LS_FAV) || "[]"));
+
+    const GROUPS = ["All", ...Array.from(new Set(TOOLS.map(t => t.group))).sort()];
+
+    // ====== theme ======
+    function setTheme(mode) {
+      const root = document.documentElement;
+      const isDark = mode === "dark";
+      root.classList.toggle("dark", isDark);
+      document.body.classList.toggle("bg-zinc-950", isDark);
+      document.body.classList.toggle("text-zinc-100", isDark);
+      // light adjustments
+      if (!isDark) {
+        document.body.classList.add("bg-zinc-50","text-zinc-900");
+      } else {
+        document.body.classList.remove("bg-zinc-50","text-zinc-900");
+      }
+      localStorage.setItem(LS_THEME, mode);
+      document.querySelector(":root").style.colorScheme = isDark ? "dark" : "light";
+    }
+
+    const savedTheme = localStorage.getItem(LS_THEME);
+    if (savedTheme) setTheme(savedTheme);
+
+    $("#theme").addEventListener("click", () => {
+      const isDark = document.documentElement.classList.contains("dark");
+      setTheme(isDark ? "light" : "dark");
+      render();
+    });
+
+    // ====== chips ======
+    function renderChips() {
+      chips.innerHTML = "";
+      GROUPS.forEach(g => {
+        const btn = document.createElement("button");
+        const isActive = g === activeGroup;
+
+        btn.className =
+          "rounded-full border px-3 py-1.5 text-xs transition " +
+          (isActive
+            ? "border-indigo-400/30 bg-indigo-500/15 text-indigo-100"
+            : "border-white/10 bg-white/5 text-zinc-200 hover:bg-white/10");
+
+        if (!document.documentElement.classList.contains("dark")) {
+          btn.className =
+            "rounded-full border px-3 py-1.5 text-xs transition " +
+            (isActive
+              ? "border-indigo-500/25 bg-indigo-500/10 text-indigo-800"
+              : "border-black/10 bg-black/5 text-zinc-800 hover:bg-black/10");
+        }
+
+        btn.textContent = g;
+        btn.addEventListener("click", () => {
+          activeGroup = g;
+          renderChips();
+          render();
+        });
+        chips.appendChild(btn);
+      });
+    }
+
+    // ====== filtering ======
+    function normalize(s) {
+      return (s || "").toLowerCase().trim();
+    }
+
+    function filteredTools() {
+      const term = normalize(q.value);
+      return TOOLS.filter(t => {
+        const groupOk = (activeGroup === "All") || (t.group === activeGroup);
+        const text = normalize([t.name, t.desc, t.group, ...(t.tags || [])].join(" "));
+        const termOk = term.length === 0 || text.includes(term);
+        return groupOk && termOk;
+      });
+    }
+
+    // ====== cards ======
+    function statusPill(status) {
+      const map = {
+        prod: { label: "PROD", clsDark: "bg-emerald-500/15 text-emerald-200 border-emerald-400/25", clsLight: "bg-emerald-500/10 text-emerald-800 border-emerald-600/20" },
+        dev:  { label: "DEV",  clsDark: "bg-amber-500/15 text-amber-200 border-amber-400/25",   clsLight: "bg-amber-500/10 text-amber-800 border-amber-600/20" },
+        off:  { label: "OFF",  clsDark: "bg-zinc-500/15 text-zinc-200 border-white/10",          clsLight: "bg-zinc-500/10 text-zinc-700 border-black/10" },
+        warning: { label: "LIMIT", clsDark: "bg-yellow-500/15 text-yellow-200 border-yellow-400/25", clsLight: "bg-yellow-500/10 text-yellow-800 border-yellow-600/20" }
+      };
+      const m = map[status] || map.prod;
+      const isDark = document.documentElement.classList.contains("dark");
+      return `<span class="inline-flex items-center rounded-full border px-2 py-1 text-[11px] ${isDark ? m.clsDark : m.clsLight}">${m.label}</span>`;
+    }
+
+    function card(t) {
+      const isFav = favorites.has(t.id);
+      const isDark = document.documentElement.classList.contains("dark");
+
+      const clsCard = isDark
+        ? "card group rounded-3xl border border-white/10 bg-white/5 p-5 hover:border-white/20"
+        : "card group rounded-3xl border border-black/10 bg-white/70 p-5 hover:border-black/20";
+
+      const clsDesc = isDark ? "text-sm text-zinc-300" : "text-sm text-zinc-700";
+      const clsMuted = isDark ? "text-zinc-400" : "text-zinc-600";
+
+      const tagCls = isDark
+        ? "rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] text-zinc-200"
+        : "rounded-full border border-black/10 bg-black/5 px-2.5 py-1 text-[11px] text-zinc-800";
+
+      return `
+        <article class="${clsCard}" tabindex="0" role="button" data-open="${t.url}">
+          <div class="flex items-start justify-between gap-3">
+            <div class="flex items-start gap-3">
+              <div class="grid h-11 w-11 place-items-center rounded-2xl border ${isDark ? "border-white/10 bg-white/5" : "border-black/10 bg-black/5"}">
+                <i data-lucide="${t.icon}" class="h-5 w-5 ${isDark ? "text-zinc-100" : "text-zinc-900"}"></i>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-semibold tracking-tight">${t.name}</h3>
+                  ${statusPill(t.status)}
+                </div>
+                <div class="${clsDesc} mt-1">${t.desc}</div>
+              </div>
+            </div>
+
+            <button class="fav shrink-0 rounded-2xl border px-3 py-2 text-xs transition
+                          ${isDark ? "border-white/10 bg-white/5 hover:bg-white/10" : "border-black/10 bg-black/5 hover:bg-black/10"}"
+                    data-fav="${t.id}"
+                    title="Oblíbené">
+              <span class="inline-flex items-center gap-1.5">
+                <i data-lucide="${isFav ? "star" : "star"}" class="h-4 w-4 ${isFav ? "text-amber-300" : (isDark ? "text-zinc-300" : "text-zinc-700")}"></i>
+                <span class="${clsMuted}">${isFav ? "Uložené" : "Uložit"}</span>
+              </span>
+            </button>
+          </div>
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <span class="${tagCls}">${t.group}</span>
+            ${(t.tags || []).slice(0, 3).map(x => `<span class="${tagCls}">${x}</span>`).join("")}
+          </div>
+
+          <div class="mt-5 flex items-center justify-between gap-2">
+            <div class="truncate text-xs ${clsMuted}" title="${t.url}">
+              ${t.url.replace(/^https?:\/\//, "")}
+            </div>
+
+            <div class="flex items-center gap-2">
+              <button class="copy rounded-2xl border px-3 py-2 text-xs transition
+                             ${isDark ? "border-white/10 bg-white/5 hover:bg-white/10" : "border-black/10 bg-black/5 hover:bg-black/10"}"
+                      data-copy="${t.url}">
+                <span class="inline-flex items-center gap-1.5">
+                  <i data-lucide="copy" class="h-4 w-4"></i>
+                  <span>Copy</span>
+                </span>
+              </button>
+
+              <a class="open inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs transition
+                        ${isDark ? "border-indigo-400/25 bg-indigo-500/15 hover:bg-indigo-500/20" : "border-indigo-600/20 bg-indigo-500/10 hover:bg-indigo-500/15"}"
+                 href="${t.url}" target="_blank" rel="noopener noreferrer">
+                <i data-lucide="arrow-up-right" class="h-4 w-4"></i>
+                <span>Open</span>
+              </a>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    async function copy(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+      } catch {
+        // fallback
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+      }
+    }
+
+    function render() {
+      const items = filteredTools();
+      grid.innerHTML = items.map(card).join("");
+      count.textContent = String(items.length);
+      empty.classList.toggle("hidden", items.length !== 0);
+
+      lucide.createIcons();
+
+      // Card click / Enter to open
+      grid.querySelectorAll("article[data-open]").forEach(el => {
+        el.addEventListener("click", (e) => {
+          const target = e.target;
+          if (target.closest("button") || target.closest("a")) return;
+          window.open(el.dataset.open, "_blank", "noopener,noreferrer");
+        });
+        el.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") window.open(el.dataset.open, "_blank", "noopener,noreferrer");
+        });
+      });
+
+      // Favorite toggle
+      grid.querySelectorAll("button[data-fav]").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const id = btn.dataset.fav;
+          if (favorites.has(id)) favorites.delete(id);
+          else favorites.add(id);
+          localStorage.setItem(LS_FAV, JSON.stringify([...favorites]));
+          render();
+        });
+      });
+
+      // Copy URL
+      grid.querySelectorAll("button[data-copy]").forEach(btn => {
+        btn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          await copy(btn.dataset.copy);
+          btn.querySelector("span:last-child").textContent = "Copied";
+          setTimeout(() => (btn.querySelector("span:last-child").textContent = "Copy"), 900);
+        });
+      });
+    }
+
+    // ====== events ======
+    q.addEventListener("input", render);
+    clearFilters.addEventListener("click", () => {
+      activeGroup = "All";
+      q.value = "";
+      renderChips();
+      render();
+      q.focus();
+    });
+
+    $("#openFavorites").addEventListener("click", () => {
+      const favs = TOOLS.filter(t => favorites.has(t.id));
+      favs.forEach(t => window.open(t.url, "_blank", "noopener,noreferrer"));
+    });
+
+    $("#copySummary").addEventListener("click", async () => {
+      const lines = TOOLS.map(t => `${t.name}: ${t.url}`).join("\n");
+      await copy(lines);
+      $("#copySummary").textContent = "Zkopírováno ✓";
+      setTimeout(() => ($("#copySummary").textContent = "Zkopírovat seznam URL"), 1000);
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "/" && document.activeElement !== q) {
+        e.preventDefault();
+        q.focus();
+      }
+      if (e.key === "Escape") {
+        activeGroup = "All";
+        q.value = "";
+        renderChips();
+        render();
+      }
+    });
+
+    // init
+    renderChips();
+    render();
+  </script>
+</body>
+</html>

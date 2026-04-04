@@ -1,0 +1,33 @@
+---
+# Globalni nastaveni
+project_root: /opt/lab
+docker_network: oss_network
+
+# Domeny
+domain_root: oss.local
+domain_auth: auth.oss.local
+domain_assets: assets.oss.local
+domain_ciso: ciso.oss.local
+
+
+# Keycloak nastaveni
+keycloak_admin_user: admin
+keycloak_lab_user_name: "kaca"
+keycloak_lab_user_email: "kaca@oss.local"
+keycloak_lab_user_first_name: "Kaca"
+keycloak_lab_user_last_name: "Kacinsky"
+
+keycloak_db_user: keycloak
+keycloak_db_name: keycloak
+
+# CISO Assistant nastaveni
+ciso_db_user: ciso
+ciso_db_name: ciso_assistant
+
+# Snipe-IT nastaveni
+snipeit_mysql_user: snipeit
+snipeit_mysql_database: snipeit
+
+# Caddy nastaveni
+caddy_data_dir: "{{ project_root }}/caddy/data"
+caddy_config_dir: "{{ project_root }}/caddy/config"

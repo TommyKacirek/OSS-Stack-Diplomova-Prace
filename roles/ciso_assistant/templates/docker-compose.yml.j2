@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  db_ciso:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: {{ ciso_db_user }}
+      POSTGRES_PASSWORD: {{ ciso_db_password }}
+      POSTGRES_DB: {{ ciso_db_name }}
+    volumes:
+      - ciso_db_data:/var/lib/postgresql/data
+    networks:
+      - {{ docker_network }}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U {{ ciso_db_user }} -d {{ ciso_db_name }}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  cisobackend:
+    image: ghcr.io/intuitem/ciso-assistant-community/backend:latest
+    container_name: cisobackend
+    restart: unless-stopped
+    depends_on:
+      db_ciso:
+        condition: service_healthy
+    environment:
+      - CISO_ASSISTANT_URL=https://{{ domain_ciso }}
+      - POSTGRES_NAME={{ ciso_db_name }}
+      - POSTGRES_USER={{ ciso_db_user }}
+      - POSTGRES_PASSWORD={{ ciso_db_password }}
+      - DB_HOST=db_ciso
+      - DB_PORT=5432
+      - DJANGO_DEBUG=False
+      - ALLOWED_HOSTS=localhost,127.0.0.1,{{ domain_ciso }},cisobackend
+      - HUEY_FILE_PATH=/code/db/huey.db
+      - REQUESTS_CA_BUNDLE=/code/caddy_root_ca.crt
+    volumes:
+      - ./files/apply_hotfixes.py:/code/apply_hotfixes.py
+      - ciso_huey_data:/code/db
+      - ./caddy_root_ca.crt:/code/caddy_root_ca.crt
+    networks:
+      - {{ docker_network }}
+
+  cisohuey:
+    image: ghcr.io/intuitem/ciso-assistant-community/backend:latest
+    container_name: cisohuey
+    restart: unless-stopped
+    depends_on:
+      db_ciso:
+        condition: service_healthy
+    command: python manage.py run_huey
+    environment:
+      - CISO_ASSISTANT_URL=https://{{ domain_ciso }}
+      - POSTGRES_NAME={{ ciso_db_name }}
+      - POSTGRES_USER={{ ciso_db_user }}
+      - POSTGRES_PASSWORD={{ ciso_db_password }}
+      - DB_HOST=db_ciso
+      - DB_PORT=5432
+      - HUEY_FILE_PATH=/code/db/huey.db
+    volumes:
+      - ciso_huey_data:/code/db
+    networks:
+      - {{ docker_network }}
+
+  cisofrontend:
+    image: ghcr.io/intuitem/ciso-assistant-community/frontend:latest
+    container_name: cisofrontend
+    restart: unless-stopped
+    environment:
+      - PUBLIC_BACKEND_API_URL=http://cisobackend:8000/api
+      - PUBLIC_BACKEND_API_EXPOSED_URL=https://{{ domain_ciso }}/api
+    networks:
+      - {{ docker_network }}
+  
+volumes:
+  ciso_db_data:
+  ciso_huey_data:
+
+networks:
+  {{ docker_network }}:
+    external: true

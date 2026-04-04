@@ -1,0 +1,34 @@
+---
+# Post-deploy tasks for CISO Assistant
+# Apply hotfixes and optionally upload legislation data
+
+- name: Copy hotfix script to container
+  command: docker cp {{ role_path }}/files/apply_hotfixes.py cisobackend:/code/apply_hotfixes.py
+
+- name: Apply hotfixes to models.py
+  command: docker exec cisobackend python3 /code/apply_hotfixes.py
+  register: hotfix_result
+  changed_when: "'aplikovány' in hotfix_result.stdout"
+
+- name: Restart CISO backend after hotfixes
+  command: docker restart cisobackend
+  when: hotfix_result.changed
+
+- name: Wait for CISO backend to be ready
+  command: docker exec cisobackend curl -s http://localhost:8000/api/health/
+  register: health_check
+  until: health_check.rc == 0
+  retries: 30
+  delay: 5
+  when: hotfix_result.changed
+
+# Optional: Upload legislation data
+- name: Copy legislation upload script to container
+  command: docker cp {{ role_path }}/files/ciso_upload.py cisobackend:/code/ciso_upload.py
+  when: ciso_upload_legislation | default(false)
+
+- name: Upload legislation and tasks via API
+  command: docker exec cisobackend python3 /code/ciso_upload.py
+  register: upload_result
+  when: ciso_upload_legislation | default(false)
+  changed_when: "'vytvořeno' in upload_result.stdout or 'vytvořen' in upload_result.stdout"

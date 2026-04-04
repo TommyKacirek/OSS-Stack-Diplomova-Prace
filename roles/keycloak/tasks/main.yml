@@ -1,0 +1,50 @@
+---
+# Ansible role: keycloak
+# Nasadí Keycloak jako centrální Identity Provider (IdP) pro SSO.
+# Keycloak spravuje uživatele, skupiny a vydává tokeny pro OIDC (CISO Assistant)
+# a SAML 2.0 (Snipe-IT). Při startu importuje předpřipravený realm „Lab".
+
+# Vytvoří pracovní adresář pro Keycloak a jeho databázi
+- name: Create Keycloak directory
+  file:
+    path: "{{ project_root }}/keycloak"
+    state: directory
+    mode: '0755'
+  tags: [keycloak]
+
+# Vygeneruje soubor realm-export.json z Jinja2 šablony;
+# obsahuje klienty (ciso-assistant-oidc, snipeit-oidc), uživatele a mapper konfigurace
+- name: Deploy Realm Export Config
+  template:
+    src: realm-export.json.j2
+    dest: "{{ project_root }}/keycloak/realm-export.json"
+    mode: '0644'
+  tags: [keycloak]
+  notify: restart keycloak
+
+# Vygeneruje docker-compose.yml pro Keycloak a jeho PostgreSQL databázi
+- name: Deploy Keycloak Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ project_root }}/keycloak/docker-compose.yml"
+    mode: '0644'
+  tags: [keycloak]
+  notify: restart keycloak
+
+# Spustí Keycloak a PostgreSQL kontejnery
+- name: Start Keycloak Service
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/keycloak"
+    state: present
+  tags: [keycloak]
+
+# Čeká na dostupnost Keycloak API; první start trvá ~60 s (inicializace DB)
+- name: Wait for Keycloak to be ready
+  uri:
+    url: "http://localhost:8080/realms/master/.well-known/openid-configuration"
+    status_code: 200
+  register: result
+  until: result.status == 200
+  retries: 30
+  delay: 5
+  tags: [keycloak]

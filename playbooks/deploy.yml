@@ -1,0 +1,31 @@
+---
+# Hlavní deployment playbook pro OSS Cybersecurity Lab.
+# Spouštěj z kořenového adresáře projektu:
+#   ansible-playbook playbooks/deploy.yml
+#
+# Pro selektivní nasazení konkrétní role použij --tags, např.:
+#   ansible-playbook playbooks/deploy.yml --tags caddy,keycloak
+#
+# Pořadí rolí je důležité: caddy musí běžet před keycloak,
+# keycloak musí být ready před snipeit a ciso_assistant (SAML/OIDC).
+
+- name: Deploy Cybersecurity Lab
+  hosts: all
+  become: true
+  gather_facts: true
+
+  roles:
+    - role: common          # Základní balíčky, časová zóna, Docker síť
+      tags: common
+    - role: caddy           # Reverse proxy, TLS termination, interní CA
+      tags: caddy
+    - role: keycloak        # Identity Provider (SSO, SAML, OIDC)
+      tags: keycloak
+    - role: ciso_assistant  # GRC platforma (OIDC SSO přes Keycloak)
+      tags: ciso
+    - role: snipeit         # Správa aktiv, SAML SSO přes Keycloak
+      tags: snipeit
+    - role: landing         # Statická landing page (rozcestník)
+      tags: landing
+    - role: backup          # Restic zálohy (cron, denní, 7 dní retence)
+      tags: backup

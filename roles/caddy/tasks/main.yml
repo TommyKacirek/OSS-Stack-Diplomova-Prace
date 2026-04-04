@@ -1,0 +1,45 @@
+---
+# Ansible role: caddy
+# Nasadí Caddy jako reverse proxy s interní CA pro TLS certifikáty.
+# Caddy obsluhuje všechny HTTPS požadavky na portech 80/443 a přeposílá
+# je na příslušné backendové služby (Keycloak, Snipe-IT, CISO Assistant).
+
+# Vytvoří adresář pro konfiguraci a data Caddy
+- name: Create Caddy directory
+  file:
+    path: "{{ project_root }}/caddy"
+    state: directory
+    mode: '0755'
+  tags: [caddy]
+
+# Vygeneruje docker-compose.yml z Jinja2 šablony
+- name: Deploy Caddy Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ project_root }}/caddy/docker-compose.yml"
+    mode: '0644'
+  tags: [caddy]
+  notify: restart caddy
+
+# Spustí Caddy kontejner (pokud neběží)
+- name: Start Caddy Service
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/caddy"
+    state: present
+  tags: [caddy]
+
+# Vygeneruje Caddyfile z Jinja2 šablony; obsahuje bloky pro každou doménu
+- name: Deploy Caddyfile
+  template:
+    src: Caddyfile.j2
+    dest: "{{ project_root }}/caddy/Caddyfile"
+    mode: '0644'
+  tags: [caddy]
+  register: caddyfile_update
+
+# Ověří syntaxi Caddyfile pouze pokud došlo ke změně (šetří čas)
+- name: Validate Caddy Configuration
+  command: docker exec caddy caddy validate --config /etc/caddy/Caddyfile
+  when: caddyfile_update.changed
+  tags: [caddy]
+  notify: reload caddy

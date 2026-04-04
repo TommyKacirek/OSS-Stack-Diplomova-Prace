@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  snipeit:
+    image: snipe/snipe-it:latest
+    container_name: snipeit
+    restart: unless-stopped
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "true"
+      APP_KEY: {{ snipeit_app_key }}
+      APP_URL: https://{{ domain_assets }}
+      APP_TIMEZONE: "Europe/Prague"
+      APP_LOCALE: "en"
+      APP_FORCE_TLS: "true"
+      DB_CONNECTION: mysql
+      DB_HOST: snipeit_db
+      DB_DATABASE: {{ snipeit_mysql_database }}
+      DB_USERNAME: {{ snipeit_mysql_user }}
+      DB_PASSWORD: {{ snipeit_mysql_password }}
+      # OIDC removed in favor of SAML
+      LOGIN_WITH_DEFAULT_USER: "false"
+      # Bezpecnostni nastaveni pro cookies
+      SESSION_SECURE_COOKIE: "true"
+      APP_DISABLE_SETUP: "true"
+      # Pokud by byl problem s certifikatem pri komunikaci server-server (SnipeIT -> Keycloak), muzeme docasne vypnout
+      # GUZZLE_VERIFY_SSL: "false"
+    ports:
+      # Exponujeme port interne v docker siti, Caddy na nej vidi
+      - "80" 
+    depends_on:
+      - snipeit_db
+    networks:
+      - {{ docker_network }}
+
+  snipeit_db:
+    image: mysql:8.0
+    container_name: snipeit_db
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: {{ snipeit_mysql_database }}
+      MYSQL_USER: {{ snipeit_mysql_user }}
+      MYSQL_PASSWORD: {{ snipeit_mysql_password }}
+      MYSQL_ROOT_PASSWORD: {{ snipeit_mysql_root_password }}
+    volumes:
+      - snipeit_db_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    networks:
+      - {{ docker_network }}
+
+volumes:
+  snipeit_db_data:
+
+networks:
+  {{ docker_network }}:
+    external: true

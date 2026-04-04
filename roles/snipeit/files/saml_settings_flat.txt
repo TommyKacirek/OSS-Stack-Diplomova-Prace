@@ -1,0 +1,12 @@
+strict=false
+debug=true
+sp.entityId=https://assets.oss.local
+sp.assertionConsumerService.url=https://assets.oss.local/saml/acs
+sp.assertionConsumerService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST
+sp.NameIDFormat=urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified
+idp.entityId=https://auth.oss.local/realms/Lab
+idp.singleSignOnService.url=https://auth.oss.local/realms/Lab/protocol/saml
+idp.singleSignOnService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+idp.singleLogoutService.url=https://auth.oss.local/realms/Lab/protocol/saml
+idp.singleLogoutService.binding=urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect
+idp.x509cert=MIIClTCCAX0CBgGbKN018DANBgkqhkiG9w0BAQsFADAOMQwwCgYDVQQDDANMYWIwHhcNMjUxMjE2MjAzMDQ0WhcNMzUxMjE2MjAzMjI0WjAOMQwwCgYDVQQDDANMYWIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJR8xmfNQfYWdbtFM1+U+8c99IzjS584Fp8sEGRHrfIQWPfCMcxg3MhqtcIvMY4KjqUX/A82PrlRzpOxcX3UwwcR4RH1yTLZG5GkO2Fn5CbhrNr12HBoU8/tdhPtMsbzAGjFIyfzkerANFAkk3aZC8jwo6i4aOWMTKXtWhoVcaLgtfdpxoOnNkm8GaWY9f/CxmBltfCSbSXhbv1Ub5qzrHcRgQs635VwNjtvpxIZUsu85RtVgr/uGioWLf1+UpviICsPb9qk/pKyK2KQndZdw7SSI0/teZMEJkYzF04Jx5+JJhptpk+aQpLNdpiZ8Czw7nbrfo/rGy6r5uTRHslVjxAgMBAAEwDQYJKoZIhvcNAQELBQADggEBAJX3FqV8CcLuD1wWXexflk60uQWgQxVRdLolJVbSQ5y0bgIld+hvDcaW/H+XOz6AiZ5DZSqrCrOy8/+LkystLZPbQbYRdk4KxgVgVxSlu5DjWnoPTAvYHdllnsC7apWzVF0aKco4x/wYkTWtdgDprrOmIlRMI+C01bqEbNYSYbCK6Yh1SZ/7PE8/k46ye5Gw436Et/MBrLlMsoXbt4QmnDqzVq8KNVb1JovVZ6GjUglDqPrbI8o007mO1U+76mDvi1vncn4fKyRHAiIehR6aaouW4M3iooBaR4/5fbfwfndxqKQibJK6YMHY5wtj5yOV372RM9f6Sp/hl1jvghmYBaQ=

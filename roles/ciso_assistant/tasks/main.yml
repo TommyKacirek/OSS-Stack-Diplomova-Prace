@@ -1,0 +1,88 @@
+---
+# Ansible role: ciso_assistant
+# Nasadí CISO Assistant (GRC platforma) jako split-stack:
+#   - cisobackend: Django REST API na portu 8000
+#   - cisofrontend: SvelteKit UI na portu 3000
+#   - cisohuey: Huey task queue pro asynchronní operace
+#   - db_ciso: PostgreSQL 15 databáze
+# Po startu nakonfiguruje OIDC přihlašování přes Keycloak.
+
+# Vytvoří pracovní adresáře pro konfiguraci a data CISO Assistant
+- name: Create CISO Assistant directory
+  file:
+    path: "{{ project_root }}/ciso_assistant"
+    state: directory
+    mode: '0755'
+  tags: [ciso_assistant]
+
+- name: Create files directory
+  file:
+    path: "{{ project_root }}/ciso_assistant/files"
+    state: directory
+    mode: '0755'
+  tags: [ciso_assistant]
+
+# Vygeneruje Django settings.py z Jinja2 šablony;
+# obsahuje konfiguraci DB, OIDC providera, auditního logu a dalších parametrů
+- name: Deploy Custom Settings
+  template:
+    src: settings.py.j2
+    dest: "{{ project_root }}/ciso_assistant/settings.py"
+    mode: '0644'
+  tags: [ciso_assistant]
+  notify: restart ciso_assistant
+
+# Vygeneruje docker-compose.yml pro všechny čtyři CISO Assistant kontejnery
+- name: Deploy CISO Assistant Docker Compose
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ project_root }}/ciso_assistant/docker-compose.yml"
+    mode: '0644'
+  tags: [ciso_assistant]
+  notify: restart ciso_assistant
+
+# Extrahuje interní Root CA certifikát Caddy pro přidání do trust store backendu;
+# Django backend potřebuje důvěřovat Caddy CA při zpětném volání na auth.oss.local
+- name: Extract Caddy Root CA Certificate
+  shell: docker exec caddy cat /data/caddy/pki/authorities/local/root.crt > {{ project_root }}/ciso_assistant/caddy_root_ca.crt
+  tags: [ciso_assistant]
+  notify: restart ciso_assistant
+
+# Spustí všechny CISO Assistant kontejnery (backend, frontend, huey, db)
+- name: Start CISO Assistant Service
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/ciso_assistant"
+    state: present
+  tags: [ciso_assistant]
+
+# Počká na dostupnost Django health check endpointu;
+# první start trvá déle kvůli migraci databáze a inicializaci Huey
+- name: Wait for CISO Assistant Backend to be ready
+  command: docker exec cisobackend /code/.venv/bin/python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health/')"
+  register: result
+  until: result.rc == 0
+  retries: 60
+  delay: 5
+  tags: [ciso_assistant]
+
+# Vygeneruje Python skript pro konfiguraci OIDC; skript obsahuje
+# Client ID a Client Secret z vault.yml pro připojení na Keycloak
+- name: Copy Setup OIDC Script
+  template:
+    src: setup_oidc.py.j2
+    dest: "{{ project_root }}/ciso_assistant/setup_oidc.py"
+    mode: '0644'
+  tags: [ciso_assistant]
+
+# Zkopíruje skript do kontejneru
+- name: Copy Script to Container
+  command: docker cp {{ project_root }}/ciso_assistant/setup_oidc.py cisobackend:/opt/setup_oidc.py
+  tags: [ciso_assistant]
+
+# Spustí skript, který nakonfiguruje OIDC SocialApp a GlobalSettings v Django ORM;
+# po tomto kroku se uživatelé mohou přihlásit přes Keycloak (SSO)
+- name: Execute OIDC Setup
+  command: docker exec cisobackend /code/.venv/bin/python /opt/setup_oidc.py
+  register: setup_output
+  changed_when: "'configured successfully' in setup_output.stdout"
+  tags: [ciso_assistant]
