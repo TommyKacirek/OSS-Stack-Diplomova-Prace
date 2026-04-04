@@ -21,14 +21,8 @@
   tags: [caddy]
   notify: restart caddy
 
-# Spustí Caddy kontejner (pokud neběží)
-- name: Start Caddy Service
-  community.docker.docker_compose_v2:
-    project_src: "{{ project_root }}/caddy"
-    state: present
-  tags: [caddy]
-
 # Vygeneruje Caddyfile z Jinja2 šablony; obsahuje bloky pro každou doménu
+# MUSÍ BÝT PŘED SPUŠTĚNÍM KONTEJNERU
 - name: Deploy Caddyfile
   template:
     src: Caddyfile.j2
@@ -36,6 +30,13 @@
     mode: '0644'
   tags: [caddy]
   register: caddyfile_update
+
+# Spustí Caddy kontejner (pokud neběží)
+- name: Start Caddy Service
+  community.docker.docker_compose_v2:
+    project_src: "{{ project_root }}/caddy"
+    state: present
+  tags: [caddy]
 
 # Ověří syntaxi Caddyfile pouze pokud došlo ke změně (šetří čas)
 - name: Validate Caddy Configuration
