@@ -67,6 +67,15 @@
   register: hotfix_result
   changed_when: "'APPLIED' in hotfix_result.stdout"
 
+# Počká, až bude MySQL databáze a její schéma (migrace) připravena
+- name: Wait for Snipe-IT database and tables to be ready
+  command: "docker exec snipeit php artisan tinker --execute=\"echo Schema::hasTable('settings') ? 'true' : 'false';\""
+  register: table_status
+  until: "'true' in table_status.stdout"
+  retries: 30
+  delay: 10
+  changed_when: false
+
 # Vytvoří admin účet přes artisan příkaz; přeskočí setup wizard Snipe-IT
 - name: Create Admin User (Bypass Setup Wizard)
   command: >
@@ -130,6 +139,23 @@
 - name: Clear Config Cache (Critical for SAML changes)
   command: docker exec snipeit php artisan config:clear
   changed_when: true
+
+# Vygeneruje OAuth klíče pro Laravel Passport (nutné pro API tokeny)
+- name: Generate OAuth Keys
+  command: docker exec snipeit php artisan passport:keys --no-interaction
+  register: keys_res
+  failed_when:
+    - keys_res.rc != 0
+    - "'already exist' not in keys_res.stdout"
+  changed_when: "'already exist' not in keys_res.stdout"
+
+- name: Create Personal Access Client
+  command: docker exec snipeit php artisan passport:client --personal --no-interaction
+  register: client_res
+  failed_when:
+    - client_res.rc != 0
+    - "'already exists' not in client_res.stdout"
+  changed_when: "'already exists' not in client_res.stdout"
 
 # Vygeneruje API token pro uživatele ID=1 (admin); token je potřeba pro seeding
 - name: Generate API Key for Seeding
