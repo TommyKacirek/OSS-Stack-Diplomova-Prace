@@ -36,8 +36,9 @@ sudo apt update && sudo apt install -y git
 
 ```bash
 mkdir cybersecurity-lab
-git clone https://github.com/TommyKacirek/OSS-Stack-Diplomova-Prace.git
 cd ~/cybersecurity-lab
+git clone https://github.com/TommyKacirek/OSS-Stack-Diplomova-Prace.git
+cd OSS-Stack-Diplomova-Prace
 ```
 
 ### 3. Příprava serveru (Bootstrap)
