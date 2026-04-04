@@ -30,6 +30,19 @@
     owner: "{{ ansible_user | default(ansible_env.USER) }}"
     group: docker
 
+# Zajistí rozlišení lokálních domén na hostitelském stroji; 
+# nutné pro dostupnost SAML metadat a dalších služeb
+- name: Ensure local domains are in /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    line: "127.0.0.1 {{ item }}"
+    state: present
+  loop:
+    - "{{ domain_root }}"
+    - "{{ domain_auth }}"
+    - "{{ domain_assets }}"
+    - "{{ domain_ciso }}"
+
 # Vytvoří sdílenou bridge síť pro komunikaci mezi kontejnery;
 # všechny služby jsou připojeny do této sítě a mohou se navzájem adresovat jménem
 - name: Create Docker network
