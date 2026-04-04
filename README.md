@@ -35,6 +35,7 @@ sudo apt update && sudo apt install -y git
 ### 2. Klonování repozitáře
 
 ```bash
+mkdir cybersecurity-lab
 git clone https://github.com/TommyKacirek/OSS-Stack-Diplomova-Prace.git
 cd ~/cybersecurity-lab
 ```
