@@ -145,8 +145,8 @@ Zálohy probíhají automaticky každý den v 02:00 do adresáře `/home/USER/cy
 ```bash
 ./run-backup.sh          # Ruční záloha
 
-# Výpis snapshotů (nutné nastavit proměnné prostředí)
-RESTIC_REPOSITORY=~/cybersecurity-backups RESTIC_PASSWORD='heslo_z_vault.yml' restic snapshots
+# Výpis snapshotů (repozitář patří rootovi, nutné sudo)
+sudo RESTIC_REPOSITORY=~/cybersecurity-backups RESTIC_PASSWORD='heslo_z_vault.yml' restic snapshots
 
 cat /var/log/restic-backup.json  # Logy
 ```
