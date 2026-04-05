@@ -86,3 +86,16 @@
   register: setup_output
   changed_when: "'configured successfully' in setup_output.stdout"
   tags: [ciso_assistant]
+
+# Nahraje demo data: Framework Vyhlášky 410/2025, organizační data Energo-Služby
+# a compliance assessment s mapováním nástrojů OSS stacku na požadavky
+- name: Copy CISO Seed Script to Container
+  command: docker cp {{ role_path }}/files/ciso_upload.py cisobackend:/code/ciso_upload.py
+  tags: [ciso_assistant]
+
+- name: Run CISO Seed Script
+  command: docker exec cisobackend /code/.venv/bin/python3 /code/ciso_upload.py
+  register: seed_output
+  changed_when: "'Framework vytvoren' in seed_output.stdout"
+  failed_when: seed_output.rc != 0
+  tags: [ciso_assistant]
