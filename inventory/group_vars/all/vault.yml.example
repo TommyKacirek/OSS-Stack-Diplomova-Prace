@@ -12,6 +12,8 @@ keycloak_db_password: ZmenMeNaSilneHeslo!
 
 # CISO Assistant
 ciso_db_password: ZmenMeNaSilneHeslo!
+ciso_superuser_email: admin@oss.local
+ciso_superuser_password: ZmenMeNaSilneHeslo!
 
 # Snipe-IT
 snipeit_mysql_password: ZmenMeNaSilneHeslo!
