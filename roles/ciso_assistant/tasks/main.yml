@@ -65,8 +65,51 @@
   delay: 5
   tags: [ciso_assistant]
 
-# Vygeneruje Python skript pro konfiguraci OIDC; skript obsahuje
-# Client ID a Client Secret z vault.yml pro připojení na Keycloak
+# Přihlásí Keycloak admin klienta pro následné operace přes kcadm.sh
+- name: Authenticate Keycloak admin CLI
+  command: >
+    docker exec keycloak /opt/keycloak/bin/kcadm.sh config credentials
+    --server http://localhost:8080
+    --realm master
+    --user {{ keycloak_admin_user }}
+    --password {{ keycloak_admin_password }}
+  tags: [ciso_assistant]
+
+# Získá UUID klienta ciso-assistant-oidc z Keycloaku
+- name: Get CISO OIDC client UUID
+  command: >
+    docker exec keycloak /opt/keycloak/bin/kcadm.sh get clients -r Lab
+    --fields id,clientId --query clientId=ciso-assistant-oidc
+  register: ciso_client_json
+  tags: [ciso_assistant]
+
+# Vygeneruje náhodný OIDC secret a nastaví ho v Keycloaku
+- name: Generate and set OIDC client secret in Keycloak
+  vars:
+    client_uuid: "{{ (ciso_client_json.stdout | from_json)[0].id }}"
+    generated_secret: "{{ lookup('password', '/dev/null length=32 chars=ascii_letters,digits') }}"
+  command: >
+    docker exec keycloak /opt/keycloak/bin/kcadm.sh update
+    clients/{{ client_uuid }} -r Lab -s secret={{ generated_secret }}
+  register: secret_result
+  tags: [ciso_assistant]
+
+# Přečte aktuální secret z Keycloaku pro použití v CISO setup skriptu
+- name: Read OIDC client secret from Keycloak
+  vars:
+    client_uuid: "{{ (ciso_client_json.stdout | from_json)[0].id }}"
+  command: >
+    docker exec keycloak /opt/keycloak/bin/kcadm.sh get
+    clients/{{ client_uuid }} -r Lab --fields secret
+  register: ciso_secret_json
+  tags: [ciso_assistant]
+
+- name: Set OIDC secret variable
+  set_fact:
+    ciso_oidc_secret: "{{ (ciso_secret_json.stdout | from_json).secret }}"
+  tags: [ciso_assistant]
+
+# Vygeneruje Python skript pro konfiguraci OIDC s aktuálním secretem z Keycloaku
 - name: Copy Setup OIDC Script
   template:
     src: setup_oidc.py.j2

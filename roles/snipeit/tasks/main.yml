@@ -143,12 +143,13 @@
 
 # Vygeneruje OAuth klíče pro Laravel Passport (nutné pro API tokeny)
 - name: Generate OAuth Keys
-  command: docker exec snipeit php artisan passport:keys --no-interaction
-  register: keys_res
-  failed_when:
-    - keys_res.rc != 0
-    - "'already exist' not in keys_res.stdout"
-  changed_when: "'already exist' not in keys_res.stdout"
+  command: docker exec snipeit php artisan passport:keys --force --no-interaction
+  changed_when: true
+
+# Opraví práva oauth-public.key — Apache běží jako 'docker' user, ne www-data
+- name: Fix OAuth public key permissions
+  command: docker exec -u root snipeit bash -c "chmod 644 /var/www/html/storage/oauth-public.key"
+  changed_when: false
 
 - name: Create Personal Access Client
   command: docker exec snipeit php artisan passport:client --personal --no-interaction

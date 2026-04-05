@@ -14,7 +14,7 @@ from global_settings.models import GlobalSettings
 # Configuration
 PROVIDER_ID = "openid_connect"
 CLIENT_ID = "ciso-assistant-oidc"
-SECRET = "{{ oidc_client_secret }}"
+SECRET = "{{ ciso_oidc_secret }}"
 NAME = "Keycloak OIDC"
 # Use external HTTPS URL for OIDC to ensure issuer consistency
 # The backend container trusts Caddy's CA via REQUESTS_CA_BUNDLE
