@@ -12,7 +12,6 @@ Stack obsahuje následující předkonfigurované služby integrované do jednoh
 | **Keycloak** | `https://auth.oss.local` | Centrální Identity Provider (IdP) pro správu uživatelů a SSO (přes SAML/OIDC). |
 | **Snipe-IT** | `https://assets.oss.local` | Systém pro evidenci a správu IT aktiv (Asset Management). |
 | **CISO Assistant** | `https://ciso.oss.local` | GRC nástroj pro řízení kyberbezpečnosti (vč. Vyhlášky 410/2025). |
-| **Vaultwarden** | `https://pass.oss.local` | Bezpečný správce hesel (odlehčená alternativa k Bitwardenu). |
 | **Landing page** | `https://oss.local` | Jednoduchý rozcestník s odkazy na všechny běžící služby. |
 | **Restic** | — | Nástroj pro automatizované, šifrované zálohování celého labu. |
 
@@ -104,7 +103,6 @@ Většina služeb je integrována přes **Single Sign-On (SSO)**.
 
 - **Keycloak (`auth.oss.local`):** Správa celého identity managementu. Login jako `admin` s heslem z `vault.yml`.
 - **Snipe-IT & CISO Assistant:** Na přihlašovací stránce zvolte možnost **"Log in with SAML"** (nebo OIDC). Budete přesměrováni na Keycloak a po zadání údajů administrátora se automaticky přihlásíte s plnými právy.
-- **Vaultwarden:** Z bezpečnostních důvodů nepodporuje automatický provisioning. Při prvním přístupu si **manuálně vytvořte účet** přímo v aplikaci.
 
 ---
 
