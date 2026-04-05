@@ -67,9 +67,10 @@
   register: hotfix_result
   changed_when: "'APPLIED' in hotfix_result.stdout"
 
-# Počká, až bude MySQL databáze a její schéma (migrace) připravena
+# Počká, až bude MySQL databáze a její schéma (migrace) plně připravena
+# Kontroluje existenci sloupce 'brand' v tabulce 'settings' — přidán pozdější migrací
 - name: Wait for Snipe-IT database and tables to be ready
-  command: "docker exec snipeit php artisan tinker --execute=\"echo Schema::hasTable('settings') ? 'true' : 'false';\""
+  command: "docker exec snipeit php artisan tinker --execute=\"echo Schema::hasColumn('settings', 'brand') ? 'true' : 'false';\""
   register: table_status
   until: "'true' in table_status.stdout"
   retries: 30
