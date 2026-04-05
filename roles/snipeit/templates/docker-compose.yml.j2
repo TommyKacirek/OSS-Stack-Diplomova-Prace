@@ -22,6 +22,7 @@ services:
       LOGIN_WITH_DEFAULT_USER: "false"
       # Bezpecnostni nastaveni pro cookies
       SESSION_SECURE_COOKIE: "true"
+      TRUSTED_PROXIES: "*"
       APP_DISABLE_SETUP: "true"
       # Pokud by byl problem s certifikatem pri komunikaci server-server (SnipeIT -> Keycloak), muzeme docasne vypnout
       # GUZZLE_VERIFY_SSL: "false"
@@ -58,3 +59,4 @@ volumes:
 networks:
   {{ docker_network }}:
     external: true
+
