@@ -17,7 +17,7 @@ Stack obsahuje následující předkonfigurované služby integrované do jednoh
 
 ## Požadavky
 
-- **Virtuální stroj:** Ubuntu 22.04 LTS (doporučeno min. **4 GB RAM**, **50 GB disk**).
+- **Virtuální stroj:** Ubuntu 22.04 LTS (doporučeno min. **6 GB RAM**, **50 GB disk**).
 - **Konektivita:** Přístup k internetu (pro stažení Docker obrazů a závislostí).
 - **Klient:** Prohlížeč na libovolném OS (Windows, macOS, Linux) s přístupem do sítě VM.
 
