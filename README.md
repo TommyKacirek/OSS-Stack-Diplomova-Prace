@@ -54,7 +54,7 @@ nano inventory/group_vars/all/vars.yml
 > **Doporučení:** Ponechte e-mail administrátora na `admin@oss.local`. Systém je navržen tak, aby při prvním přihlášení přes SSO automaticky spároval tento e-mail s právy Superusera v aplikaci CISO Assistant.
 
 ### 5. Nastavení hesel (Ansible Vault)
-Kopírujte šablonu a vyplňte vlastní silná hesla pro databáze a admin účty.
+Kopírujte šablonu a vyplňte vlastní silná hesla pro databáze a admin účty. Poznámka: Příkaz cp je povinný i v případě, že ponecháváte výchozí hesla. Bez souboru vault.yml nasazení selže.
 ```bash
 cp inventory/group_vars/all/vault.yml.example inventory/group_vars/all/vault.yml
 nano inventory/group_vars/all/vault.yml
@@ -84,7 +84,7 @@ Vytvořte směrování pro IP adresu vašeho serveru (zjistíte příkazem `ip a
 
 Přidejte řádek:
 ```text
-192.168.x.x  oss.local auth.oss.local assets.oss.local ciso.oss.local pass.oss.local
+192.168.x.x  oss.local auth.oss.local assets.oss.local ciso.oss.local 
 ```
 
 ### B. Import Trust certifikátu (Caddy Root CA)
@@ -102,8 +102,7 @@ scp user@192.168.x.x:/opt/lab/caddy/data/caddy/pki/authorities/local/root.crt ~/
 Většina služeb je integrována přes **Single Sign-On (SSO)**.
 
 - **Keycloak (`auth.oss.local`):** Správa celého identity managementu. Login jako `admin` s heslem z `vault.yml`.
-- **Snipe-IT & CISO Assistant:** Na přihlašovací stránce zvolte možnost **"Log in with SAML"** (nebo OIDC). Budete přesměrováni na Keycloak a po zadání údajů administrátora se automaticky přihlásíte s plnými právy.
-
+- **Snipe-IT & CISO Assistant:** Na přihlašovací stránce zvolte možnost **"Log in with SAML"** (nebo OIDC). Budete přesměrováni na Keycloak a přihlaste se jako admin s heslem z vault.yml (pole keycloak_admin_password).
 ---
 
 ## Správa a údržba
