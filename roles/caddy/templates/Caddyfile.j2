@@ -32,6 +32,7 @@ https://{{ domain_assets }} {
         header_up X-Real-IP {remote_host}
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
+        header_up X-Forwarded-Host {host}
     }
 }
 
@@ -64,4 +65,5 @@ https://{{ domain_ciso }} {
         header_up X-Forwarded-Proto {scheme}
     }
 }
+
 
