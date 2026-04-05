@@ -42,8 +42,8 @@ FIXES = [
     },
     {
         "file": "/var/www/html/app/Http/Controllers/Auth/LoginController.php",
-        "old": "if (\\Carbon\\now()->greaterThanOrEqualTo($notValidAfter)) {",
-        "new": "if (\\Carbon\\now()->subSeconds(60)->greaterThanOrEqualTo($notValidAfter)) {",
+        "old": "if (\\Carbon::now()->greaterThanOrEqualTo($notValidAfter)) {",
+        "new": "if (\\Carbon::now()->subSeconds(60)->greaterThanOrEqualTo($notValidAfter)) {",
         "desc": "LoginController.php: allow 60s clock skew",
     },
 ]

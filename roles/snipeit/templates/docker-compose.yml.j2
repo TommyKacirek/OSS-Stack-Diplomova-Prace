@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     environment:
       APP_ENV: production
-      APP_DEBUG: "true"
+      APP_DEBUG: "false"
       APP_KEY: {{ snipeit_app_key }}
       APP_URL: https://{{ domain_assets }}
       APP_TIMEZONE: "Europe/Prague"

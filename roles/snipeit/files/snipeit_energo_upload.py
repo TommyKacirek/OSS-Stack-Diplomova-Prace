@@ -2,8 +2,8 @@
 """
 Snipe-IT Energo-Sluzby Seeding Script
 ====================================
-Automatizovaně nahraje výrobce, kategorie, modely a konkrétních 
-27 aktiv pro organizaci Energo-Služby s.r.o.
+Automatizovaně nahraje výrobce, kategorie, modely a konkrétních
+33 aktiv pro organizaci Energo-Služby s.r.o.
 
 Použití:
     python3 snipeit_energo_upload.py
@@ -33,20 +33,23 @@ HEADERS = {
 }
 
 # --- KONFIGURACE DAT ---
-MANUFACTURERS = ["Apple", "Dell", "Generic"]
+MANUFACTURERS = ["Apple", "Dell", "Generic", "Cisco"]
 CATEGORIES = [
     {"name": "Laptops", "type": "asset"},
     {"name": "Servers", "type": "asset"},
-    {"name": "Mobile Phones", "type": "asset"}
+    {"name": "Mobile Phones", "type": "asset"},
+    {"name": "Networking", "type": "asset"}
 ]
 MODELS = [
     {"name": "MacBook Air M2", "man": "Apple", "cat": "Laptops"},
     {"name": "Dell Precision 5570", "man": "Dell", "cat": "Laptops"},
     {"name": "iPhone 15", "man": "Apple", "cat": "Mobile Phones"},
-    {"name": "PowerEdge R750", "man": "Dell", "cat": "Servers"}
+    {"name": "PowerEdge R750", "man": "Dell", "cat": "Servers"},
+    {"name": "Cisco Catalyst 2960", "man": "Cisco", "cat": "Networking"},
+    {"name": "Cisco ASA 5506", "man": "Cisco", "cat": "Networking"}
 ]
 
-# Definice 27 aktiv (zkráceně pro skript)
+# Definice 33 aktiv
 ASSETS_SPEC = [
     {"tag": "SRV-001", "name": "DB-SPOTREBA-01", "model": "PowerEdge R750", "serial": "SN-SRV-101"},
     {"tag": "SRV-002", "name": "BACKUP-01", "model": "PowerEdge R750", "serial": "SN-SRV-102"},
@@ -59,6 +62,11 @@ for i in range(1, 11):
     ASSETS_SPEC.append({"tag": f"LT-A-{i:03}", "model": "MacBook Air M2", "serial": f"SN-LTA-{200+i}"})
 for i in range(1, 11):
     ASSETS_SPEC.append({"tag": f"LT-D-{i:03}", "model": "Dell Precision 5570", "serial": f"SN-LTD-{300+i}"})
+# Síťové prvky (6 ks) — 3x switch, 3x firewall
+for i in range(1, 4):
+    ASSETS_SPEC.append({"tag": f"SW-{i:03}", "name": f"SWITCH-PROVOZ-{i:02}", "model": "Cisco Catalyst 2960", "serial": f"SN-SW-{400+i}"})
+for i in range(1, 4):
+    ASSETS_SPEC.append({"tag": f"FW-{i:03}", "name": f"FIREWALL-{i:02}", "model": "Cisco ASA 5506", "serial": f"SN-FW-{500+i}"})
 
 def get_id(endpoint, name):
     r = requests.get(f"{API_URL}/{endpoint}?search={name}", headers=HEADERS)
@@ -113,7 +121,7 @@ def main():
     status_id = get_id("statuslabels", "Ready to Deploy")
 
     # 5. Assets
-    print("\nAssets (27 items):")
+    print("\nAssets (33 items):")
     created, skipped = 0, 0
     for a in ASSETS_SPEC:
         # Kontrola existence podle inventárního štítku
