@@ -12,12 +12,11 @@ Problém:
 Opravy:
   1. Saml.php: setProxyVars(true) místo request()->isFromTrustedProxy()
   2. TrustProxies.php: $proxies = "*" pro důvěru Caddy proxy
-  3. EncryptCookies.php: snipeit_session vyňat z šifrování (ACS route je mimo web group)
+  3. EncryptCookies.php: snipeit_session vyňat z šifrování
+  4. LoginController.php: pohlcení časového posunu (clock skew) 60s
 
 Použití (uvnitř kontejneru):
   python3 /tmp/fix_snipeit_saml.py
-
-Spouští se přes Ansible task po startu kontejneru.
 """
 
 import sys
@@ -40,6 +39,12 @@ FIXES = [
         "old": "    protected $except = [\n        //\n    ];",
         "new": "    protected $except = [\n        'snipeit_session',\n    ];",
         "desc": "EncryptCookies.php: exclude snipeit_session",
+    },
+    {
+        "file": "/var/www/html/app/Http/Controllers/Auth/LoginController.php",
+        "old": "if (\\Carbon\\now()->greaterThanOrEqualTo($notValidAfter)) {",
+        "new": "if (\\Carbon\\now()->subSeconds(60)->greaterThanOrEqualTo($notValidAfter)) {",
+        "desc": "LoginController.php: allow 60s clock skew",
     },
 ]
 
@@ -67,3 +72,4 @@ if errors:
     sys.exit(1)
 else:
     print("\nVsechny Snipe-IT SAML hotfixy aplikovany uspesne.")
+
