@@ -36,6 +36,8 @@ services:
       - ALLOWED_HOSTS=localhost,127.0.0.1,{{ domain_ciso }},cisobackend
       - HUEY_FILE_PATH=/code/db/huey.db
       - REQUESTS_CA_BUNDLE=/code/caddy_root_ca.crt
+      - CISO_ASSISTANT_SUPERUSER_EMAIL={{ ciso_superuser_email }}
+      - CISO_ASSISTANT_SUPERUSER_PASSWORD={{ ciso_superuser_password }}
     volumes:
       - ./files/apply_hotfixes.py:/code/apply_hotfixes.py
       - ciso_huey_data:/code/db
