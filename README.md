@@ -17,16 +17,21 @@ Stack obsahuje následující předkonfigurované služby integrované do jednoh
 
 ## Požadavky
 
-- **Virtuální stroj:** Ubuntu 22.04 LTS (doporučeno min. **6 GB RAM**, **50 GB disk**).
+- **Server:** Ubuntu 22.04 LTS (doporučeno min. **6 GB RAM**, **50 GB disk**) — VM nebo WSL2.
 - **Konektivita:** Přístup k internetu (pro stažení Docker obrazů a závislostí).
-- **Klient:** Prohlížeč na libovolném OS (Windows, macOS, Linux) s přístupem do sítě VM.
+- **Klient:** Prohlížeč na libovolném OS (Windows, macOS, Linux) s přístupem do sítě serveru.
 
 ---
 
 ## Rychlý start (Instalace)
 
+> [!NOTE]
+> **Windows uživatelé:** Ansible nelze spustit nativně na Windows. Použijte jednu z těchto možností:
+> - **WSL2 (doporučeno):** Nainstalujte WSL2 s Ubuntu 22.04 — `wsl --install -d Ubuntu-22.04` v PowerShellu jako správce, poté pokračujte kroky níže uvnitř WSL2 terminálu.
+> - **Virtuální stroj:** VirtualBox nebo VMware s Ubuntu 22.04 LTS.
+
 ### 1. Příprava systému
-Pokud instalujete na čistý Linux, nejprve nainstalujte Git:
+Pokud instalujete na čistý Linux nebo WSL2, nejprve nainstalujte Git:
 ```bash
 sudo apt update && sudo apt install -y git
 ```
@@ -78,22 +83,49 @@ ansible-playbook playbooks/deploy.yml
 Aby fungovaly lokální domény a HTTPS bezpečně, proveďte na svém počítači tyto kroky:
 
 ### A. Přidání záznamů do DNS (soubor hosts)
-Vytvořte směrování pro IP adresu vašeho serveru (zjistíte příkazem `ip a`).
-- **macOS/Linux:** `sudo nano /etc/hosts`
-- **Windows:** Upravte jako správce `C:\Windows\System32\drivers\etc\hosts`
+Zjistěte IP adresu serveru příkazem `ip a` (hledejte rozhraní `eth0` nebo `ens*`).
 
-Přidejte řádek:
-```text
-192.168.x.x  oss.local auth.oss.local assets.oss.local ciso.oss.local 
+**macOS/Linux:**
+```bash
+sudo nano /etc/hosts
 ```
+
+**Windows (Notepad jako správce):**
+```
+C:\Windows\System32\drivers\etc\hosts
+```
+Nebo rychle v PowerShellu jako správce:
+```powershell
+Add-Content C:\Windows\System32\drivers\etc\hosts "192.168.x.x  oss.local auth.oss.local assets.oss.local ciso.oss.local"
+```
+
+Přidejte řádek (nahraďte IP adresou vašeho serveru):
+```text
+192.168.x.x  oss.local auth.oss.local assets.oss.local ciso.oss.local
+```
+
+> [!NOTE]
+> **WSL2 uživatelé:** IP adresu zjistíte příkazem `hostname -I` uvnitř WSL2. Hosts soubor upravte na straně Windows, ne v WSL2.
 
 ### B. Import Trust certifikátu (Caddy Root CA)
 Aby prohlížeč hlásil "Zabezpečeno", stáhněte si ze serveru kořenový certifikát:
+
+**macOS/Linux:**
 ```bash
 scp user@192.168.x.x:/opt/lab/caddy/data/caddy/pki/authorities/local/root.crt ~/Desktop/caddy-root.crt
 ```
 - **macOS:** Importujte do **Keychain Access** (System) a nastavte "Always Trust".
-- **Windows:** Importujte do úložiště **Důvěryhodné kořenové certifikační autority**.
+- **Linux:** `sudo cp caddy-root.crt /usr/local/share/ca-certificates/ && sudo update-ca-certificates`
+
+**Windows (PowerShell jako správce):**
+```powershell
+scp user@192.168.x.x:/opt/lab/caddy/data/caddy/pki/authorities/local/root.crt $env:USERPROFILE\Desktop\caddy-root.crt
+Import-Certificate -FilePath "$env:USERPROFILE\Desktop\caddy-root.crt" -CertStoreLocation Cert:\LocalMachine\Root
+```
+Nebo ručně: dvojklik na soubor → **Nainstalovat certifikát** → **Místní počítač** → **Důvěryhodné kořenové certifikační autority**.
+
+> [!NOTE]
+> **WSL2 uživatelé:** Certifikát importujte na straně Windows (výše), nikoliv uvnitř WSL2. Prohlížeč běží na Windows a používá Windows certificate store.
 
 ---
 
@@ -103,15 +135,19 @@ Většina služeb je integrována přes **Single Sign-On (SSO)**.
 
 - **Keycloak (`auth.oss.local`):** Správa celého identity managementu. Login jako `admin` s heslem z `vault.yml`.
 - **Snipe-IT & CISO Assistant:** Na přihlašovací stránce zvolte možnost **"Log in with SAML"** (nebo OIDC). Budete přesměrováni na Keycloak a přihlaste se jako admin s heslem z vault.yml (pole keycloak_admin_password).
+
 ---
 
 ## Správa a údržba
 
 ### Zálohování (Restic)
-Zálohy probíhají automaticky každý den v 02:00 do adresáře `/home/USER/cybersecurity-backups`.
+Zálohy probíhají automaticky každý den v 02:00 do adresáře `/home/USER/cybersecurity-backups`. Zálohuje se obsah `/opt/lab`.
 ```bash
 ./run-backup.sh          # Ruční záloha
-restic snapshots         # Výpis snapshotů
+
+# Výpis snapshotů (nutné nastavit proměnné prostředí)
+RESTIC_REPOSITORY=~/cybersecurity-backups RESTIC_PASSWORD='heslo_z_vault.yml' restic snapshots
+
 cat /var/log/restic-backup.json  # Logy
 ```
 
