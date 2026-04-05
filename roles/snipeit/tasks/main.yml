@@ -168,6 +168,10 @@
     snipeit_api_token: "{{ snipeit_api_key_raw.stdout | trim }}"
 
 # Nahraje ukázková aktiva organizace Energo-Služby s.r.o. přes REST API Snipe-IT
+- name: Ensure python3-requests is installed in Snipe-IT container
+  command: docker exec snipeit bash -c "python3 -c 'import requests' || (apt-get update && apt-get install -y python3-requests)"
+  changed_when: false
+
 - name: Copy Energo Seeding Script to Container
   command: docker cp {{ role_path }}/files/snipeit_energo_upload.py snipeit:/tmp/snipeit_energo_upload.py
 
@@ -178,3 +182,4 @@
     snipeit python3 /tmp/snipeit_energo_upload.py
   register: seeding_output
   changed_when: "'vytvořeno' in seeding_output.stdout"
+
