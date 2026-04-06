@@ -138,28 +138,9 @@ Většina služeb je integrována přes **Single Sign-On (SSO)**.
 
 ---
 
-## Správa a údržba
-
-### Zálohování (Restic)
-Zálohy probíhají automaticky každý den v 02:00 do adresáře `/home/USER/cybersecurity-backups`. Zálohuje se obsah `/opt/lab`.
-```bash
-./run-backup.sh          # Ruční záloha
-
-# Výpis snapshotů (repozitář patří rootovi, nutné sudo)
-sudo RESTIC_REPOSITORY=~/cybersecurity-backups RESTIC_PASSWORD='heslo_z_vault.yml' restic snapshots
-
-cat /var/log/restic-backup.json  # Logy
-```
-
-### Diagnostika (Logy)
-Pokud některá služba nefunguje, podívejte se na výpis z kontejnerů:
-```bash
-docker ps -a                 # Stav všech služeb
-docker logs caddy            # Problematika HTTPS a směrování
-docker logs keycloak         # Problémy s přihlašováním
-docker logs snipeit          # Diagnostika Asset Managementu
-```
 ## Struktura repozitáře
+
+```
 .
 ├── inventory/
 │   ├── group_vars/
@@ -250,4 +231,30 @@ docker logs snipeit          # Diagnostika Asset Managementu
 ├── bootstrap.sh
 ├── export_realm.sh
 └── run-backup.sh
+```
+
+---
+
+## Správa a údržba
+
+### Zálohování (Restic)
+Zálohy probíhají automaticky každý den v 02:00 do adresáře `/home/USER/cybersecurity-backups`. Zálohuje se obsah `/opt/lab`.
+```bash
+./run-backup.sh          # Ruční záloha
+
+# Výpis snapshotů (repozitář patří rootovi, nutné sudo)
+sudo RESTIC_REPOSITORY=~/cybersecurity-backups RESTIC_PASSWORD='heslo_z_vault.yml' restic snapshots
+
+cat /var/log/restic-backup.json  # Logy
+```
+
+### Diagnostika (Logy)
+Pokud některá služba nefunguje, podívejte se na výpis z kontejnerů:
+```bash
+docker ps -a                 # Stav všech služeb
+docker logs caddy            # Problematika HTTPS a směrování
+docker logs keycloak         # Problémy s přihlašováním
+docker logs snipeit          # Diagnostika Asset Managementu
+```
+
 ---
