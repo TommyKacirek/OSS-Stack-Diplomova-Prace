@@ -159,5 +159,95 @@ docker logs caddy            # Problematika HTTPS a směrování
 docker logs keycloak         # Problémy s přihlašováním
 docker logs snipeit          # Diagnostika Asset Managementu
 ```
-
+## Struktura repozitáře
+.
+├── inventory/
+│   ├── group_vars/
+│   │   └── all/
+│   │       ├── vars.yml
+│   │       └── vault.yml.example
+│   └── hosts
+├── playbooks/
+│   ├── ciso_only.yml
+│   └── deploy.yml
+├── roles/
+│   ├── backup/
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       └── backup.sh.j2
+│   ├── caddy/
+│   │   ├── handlers/
+│   │   │   └── main.yml
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       ├── Caddyfile.j2
+│   │       └── docker-compose.yml.j2
+│   ├── ciso_assistant/
+│   │   ├── files/
+│   │   │   ├── apply_hotfixes.py
+│   │   │   └── ciso_upload.py
+│   │   ├── handlers/
+│   │   │   └── main.yml
+│   │   ├── tasks/
+│   │   │   ├── main.yml
+│   │   │   └── post_deploy.yml
+│   │   └── templates/
+│   │       ├── docker-compose.yml.j2
+│   │       ├── settings.py.j2
+│   │       └── setup_oidc.py.j2
+│   ├── common/
+│   │   └── tasks/
+│   │       └── main.yml
+│   ├── keycloak/
+│   │   ├── handlers/
+│   │   │   └── main.yml
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       ├── docker-compose.yml.j2
+│   │       └── realm-export.json.j2
+│   ├── landing/
+│   │   ├── tasks/
+│   │   │   └── main.yml
+│   │   └── templates/
+│   │       └── index.html.j2
+│   └── snipeit/
+│       ├── files/
+│       │   ├── configure_saml.php
+│       │   ├── debug_sso_state.php
+│       │   ├── fix_snipeit_saml.py
+│       │   ├── force_saml_sql.php
+│       │   ├── inject_saml.php
+│       │   ├── saml_settings.json
+│       │   ├── saml_settings_flat.txt
+│       │   ├── setup_saml.php
+│       │   ├── snipeit_demo_assets.py
+│       │   ├── snipeit_energo_upload.py
+│       │   └── snipeit_upload.py
+│       ├── handlers/
+│       │   └── main.yml
+│       ├── tasks/
+│       │   └── main.yml
+│       └── templates/
+│           ├── docker-compose.yml.j2
+│           └── saml_settings_flat.txt.j2
+├── scripts/
+│   ├── ciso/
+│   │   ├── apply_hotfixes.py
+│   │   ├── ciso_seed.py
+│   │   ├── ciso_setup.sh
+│   │   ├── ciso_upload.py
+│   │   └── patch_ciso_settings.py
+│   └── snipeit/
+│       ├── snipeit_demo_assets.py
+│       ├── snipeit_setup.sh
+│       └── snipeit_upload.py
+├── .gitignore
+├── README.md
+├── ansible.cfg
+├── bootstrap.sh
+├── export_realm.sh
+└── run-backup.sh
 ---
