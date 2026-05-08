@@ -75,7 +75,8 @@ Samotný proces nasazení všech služeb spustíte příkazem:
 ansible-playbook playbooks/deploy.yml
 ```
 *První nasazení trvá 5–10 minut (závisí na rychlosti internetu pro stažení obrazů).*
-*(Tip: V jednom z testovacích případů si Ansible nevzal příkaz jako root. Možnost vyřešení je přepnout se do sudo su a poté spustit příkaz znovu.)*
+> [!TIP]
+> V jednom z testovacích případů si Ansible nevzal příkaz jako root. Možnost vyřešení je přepnout se do sudo su a poté spustit příkaz znovu.
 
 ---
 
