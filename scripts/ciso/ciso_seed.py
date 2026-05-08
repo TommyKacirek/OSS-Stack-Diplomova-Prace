@@ -19,7 +19,7 @@ from django.db import transaction
 FW_REF_ID = "VYHL-410-2025"
 FW_NAME = "Vyhlaska 410/2025 Sb. - Nizsi rezim (Final)"
 FW_DESC = "Pozadavky pro subjekty v rezimu nizsich povinnosti podle NIS2."
-ORG_NAME = "Energo-Služby s.r.o."
+ORG_NAME = "Demonstrace-energo-firmy s.r.o."
 
 # Definice struktury Vyhlášky 410/2025 Sb. přímo v kódu
 FW_STRUCTURE = {
@@ -69,7 +69,7 @@ POLICIES = [
 @transaction.atomic
 def seed():
     """Hlavní funkce pro naplnění databáze. Používá transakci pro zajištění konzistence."""
-    print("🌱 Zahajuji přímý import dat...")
+    print("Zahajuji přímý import dat...")
     
     # 1. Folders - Vytvoření organizační struktury složek
     global_folder, _ = Folder.objects.get_or_create(name="Global")
