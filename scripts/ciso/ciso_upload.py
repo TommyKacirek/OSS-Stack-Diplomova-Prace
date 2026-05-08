@@ -3,7 +3,7 @@
 Skript pro inicializaci legislativních rámců a konfiguraci dat přes REST API
 ===========================================================================
 Automaticky importuje legislativu (Vyhláška 410/2025 Sb.), implementační úkoly 
-a data fiktivní organizace Energo-Služby s.r.o. do systému CISO Assistant.
+a data fiktivní organizace Demonstrace-energo-firmy s.r.o. do systému CISO Assistant.
 
 Použití:
     python3 ciso_upload.py
@@ -68,8 +68,8 @@ IMPLEMENTATION_TASKS = [
     {"name": "§13 Kryptografie: Nasadit EJBCA a Matrix", "description": "Nasadit EJBCA pro certifikáty a Matrix pro šifrovanou komunikaci.", "ref_id": "TASK-CRYPTO"}
 ]
 
-# --- DATA PRO ORGANIZACI (Energo-Služby s.r.o.) ---
-ORG_NAME = "Energo-Služby s.r.o."
+# --- DATA PRO ORGANIZACI (Demonstrace-energo-firmy s.r.o.) ---
+ORG_NAME = "Demonstrace-energo-firmy s.r.o."
 POLICIES = [
     ("BP-2026-01", "Bezpečnostní politika - hesla", "Min 12 znaků pro uživatele, 17 pro adminy."),
     ("S-2026-01", "Plán školení", "Vstupní školení pro nováčky a pravidelné roční školení."),

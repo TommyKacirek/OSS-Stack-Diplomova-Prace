@@ -5,7 +5,7 @@
 #   1. Aplikuje PHP middleware patche pro správnou funkci SAML za Caddy proxy
 #   2. Vytvoří admin účet (bypass setup wizard)
 #   3. Načte X.509 certifikát z Keycloak metadata a injektuje SAML konfiguraci
-#   4. Naplní databázi ukázkovými aktivy (Energo-Služby s.r.o.)
+#   4. Naplní databázi ukázkovými aktivy (Demonstrace-energo-firmy s.r.o.)
 
 # Vytvoří pracovní adresář pro Snipe-IT a MySQL databázi
 - name: Create Snipe-IT directory
@@ -169,7 +169,7 @@
   set_fact:
     snipeit_api_token: "{{ snipeit_api_key_raw.stdout | trim }}"
 
-# Nahraje ukázková aktiva organizace Energo-Služby s.r.o. přes REST API Snipe-IT
+# Nahraje ukázková aktiva organizace Demonstrace-energo-firmy s.r.o. přes REST API Snipe-IT
 - name: Ensure python3-requests is installed in Snipe-IT container
   command: docker exec snipeit bash -c "python3 -c 'import requests' || (apt-get update && apt-get install -y python3-requests)"
   changed_when: false

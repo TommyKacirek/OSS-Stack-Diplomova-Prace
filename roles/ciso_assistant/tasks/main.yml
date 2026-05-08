@@ -130,7 +130,7 @@
   changed_when: "'configured successfully' in setup_output.stdout"
   tags: [ciso_assistant]
 
-# Nahraje demo data: Framework Vyhlášky 410/2025, organizační data Energo-Služby
+# Nahraje demo data: Framework Vyhlášky 410/2025, organizační data Demonstrace-energo-firmy
 # a compliance assessment s mapováním nástrojů OSS stacku na požadavky
 - name: Copy CISO Seed Script to Container
   command: docker cp {{ role_path }}/files/ciso_upload.py cisobackend:/code/ciso_upload.py

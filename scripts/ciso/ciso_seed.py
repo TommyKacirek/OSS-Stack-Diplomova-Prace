@@ -43,7 +43,7 @@ FW_STRUCTURE = {
 }
 
 IMPLEMENTATION_TASKS = [
-    ("Nasazení Snipe-IT", "Evidence aktiv podle § 3 (Energo-Služby)", "§ 3"),
+    ("Nasazení Snipe-IT", "Evidence aktiv podle § 3 (Demonstrace-energo-firmy)", "§ 3"),
     ("Keycloak & SSO", "Řízení přístupů podle § 7", "§ 7"),
     ("Kapacita týmu a role", "Jmenování rolí podle § 4", "§ 4"),
     ("Vaultwarden", "Správa hesel podle § 8", "§ 8"),

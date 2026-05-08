@@ -3,7 +3,7 @@
 CISO Assistant - Seed Script
 =============================
 Nahraje celou strukturu Vyhlášky 410/2025 Sb. (nižší režim, §1–§14),
-organizační data Energo-Služby s.r.o. a namapuje nástroje OSS stacku
+organizační data Demonstrace-energo-firmy s.r.o. a namapuje nástroje OSS stacku
 na jednotlivé požadavky přes compliance assessment.
 
 Spouští se uvnitř kontejneru cisobackend:
@@ -188,7 +188,7 @@ IMPLEMENTATION_TASKS = [
 # ---------------------------------------------------------------------------
 # DATA ORGANIZACE
 # ---------------------------------------------------------------------------
-ORG_NAME = "Energo-Sluzby s.r.o."
+ORG_NAME = "Demonstrace-energo-firmy s.r.o."
 ASSETS = [
     ("SRV-DB-01",     "Databazovy server s daty o spotrebe (Primarni aktivum)."),
     ("SRV-BACKUP-01", "Zalohovaci server umisteny v oddelenem segmentu."),

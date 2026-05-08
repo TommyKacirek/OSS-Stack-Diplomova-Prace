@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Snipe-IT Energo-Sluzby Seeding Script
+Snipe-IT Demonstrace-energo-firmy Seeding Script
 ====================================
 Automatizovaně nahraje výrobce, kategorie, modely a konkrétních
-33 aktiv pro organizaci Energo-Služby s.r.o.
+33 aktiv pro organizaci Demonstrace-energo-firmy s.r.o.
 
 Použití:
     python3 snipeit_energo_upload.py
